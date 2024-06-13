@@ -1,0 +1,149 @@
+[
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "GET",
+    "path": "/v6/release(3023927)?$expand=release_tag($select=tag_key,value),release_image($select=created_at,image;$expand=image($select=created_at,content_hash,end_timestamp,is_a_build_of__service,is_stored_at__image_location,push_timestamp;$expand=is_a_build_of__service($select=id,service_name)))",
+    "body": "",
+    "status": 200,
+    "response": {
+  "d": [
+    {
+      "release_tag": [
+        {
+          "tag_key": "balena-ci-commit-sha",
+          "value": "027c2575b1147b5395c61e3d824f9dff95e7f1d0"
+        },
+        {
+          "tag_key": "balena-ci-id",
+          "value": "1872131302"
+        }
+      ],
+      "release_image": [
+        {
+          "image": [
+            {
+              "is_a_build_of__service": [
+                {
+                  "id": 1242686,
+                  "service_name": "balena-supervisor"
+                }
+              ],
+              "created_at": "2024-05-27T18:47:36.093Z",
+              "content_hash": "sha256:388bd172a06f27bc639328958a9435332fa22b11ffa79e6084dabbd00047543d",
+              "end_timestamp": "2024-05-27T18:52:19.880Z",
+              "is_stored_at__image_location": "registry2.balena-cloud.com/v2/057d5134fda449e34171c0b4e969493c",
+              "push_timestamp": "2024-05-27T18:53:09.778Z"
+            }
+          ],
+          "created_at": "2024-05-27T18:53:10.060Z"
+        }
+      ],
+      "id": 3023927,
+      "belongs_to__application": {
+        "__id": 1667442
+      },
+      "build_log": "[Info]               Starting build for amd64-supervisor, user accounts_balenacloud_balenaos_test_bot\n[Info]               Dashboard link: https://dashboard.balena-cloud.com/apps/1667442/devices\n[Info]               Building on 47be6de\n[Info]               Pulling previous images for caching purposes...\n[Success]            Successfully pulled cache images\n[Info]               Starting to build balena-supervisor\n[Success]            Successfully built service balena-supervisor\n[Info]               Uploading images\n[Success]            Successfully uploaded images\n[Info]               Built on 47be6de\n[Success]            Release successfully created!\n[Info]               Release: 84111c8be5b9aa02f580b2fa1810c299 (id: 3023927)\n[Info]               Build finished in 5 minutes, 36 seconds",
+      "commit": "84111c8be5b9aa02f580b2fa1810c299",
+      "composition": {
+        "version": "2.4",
+        "services": {
+          "balena-supervisor": {
+            "tty": true,
+            "build": {
+              "context": "./"
+            },
+            "labels": {
+              "io.balena.features.dbus": "1",
+              "io.balena.features.balena-api": "1",
+              "io.balena.features.balena-socket": "1"
+            },
+            "restart": "always",
+            "privileged": true,
+            "network_mode": "host"
+          }
+        }
+      },
+      "contract": "{\"name\": \"balena-supervisor\", \"type\": \"sw.application\", \"version\": \"16.3.11\", \"joinable\": false, \"provides\": [{\"slug\": \"sw.compose.long-volume-syntax\"}], \"description\": \"Balena Supervisor: balena's agent on devices.\"}",
+      "created_at": "2024-05-27T18:47:35.255Z",
+      "end_timestamp": "2024-05-27T18:53:10.899Z",
+      "invalidation_reason": null,
+      "is_created_by__user": {
+        "__id": 237996
+      },
+      "is_final": true,
+      "is_finalized_at__date": "2024-05-27T20:05:16.091Z",
+      "is_invalidated": false,
+      "is_passing_tests": true,
+      "known_issue_list": null,
+      "note": "027c2575 (Move OS variant retrieval to config module, 2024-05-16)\n59689b27 (Do not export balenaApi on api-binder, 2024-05-15)\nac2db387 (Move api-keys module to src/lib, 2024-05-15)\n48f75e61 (Do not re-export ContractObject on lib/contracts, 2024-05-15)\nbef5e784 (Move Compose(Network|Volume)Config to top level types, 2024-05-15)\n234e0de0 (Move composition types to compose/types, 2024-05-15)\n94de4006 (Split compose types into interface and implementation, 2024-05-15)",
+      "phase": null,
+      "release_version": null,
+      "revision": 0,
+      "semver": "16.3.11",
+      "semver_build": "",
+      "semver_major": 16,
+      "semver_minor": 3,
+      "semver_patch": 11,
+      "semver_prerelease": "",
+      "source": "cloud",
+      "start_timestamp": "2024-05-27T18:47:35.238Z",
+      "status": "success",
+      "update_timestamp": "2024-05-27T20:05:16.091Z",
+      "variant": "",
+      "release_type": "final"
+    }
+  ]
+},
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:49:27 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Transfer-Encoding",
+      "chunked",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"c65-839xKaTWmgR51jAxBz92d6B2Zs0\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e6c945ca1e540-MNL",
+      "Content-Encoding",
+      "gzip",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  }
+]

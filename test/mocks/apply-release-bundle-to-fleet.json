@@ -1,0 +1,856 @@
+[
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "GET",
+    "path": "/v6/release?$select=id,is_final,is_invalidated,revision,semver,status,version&$filter=(belongs_to__application%20eq%202136996)%20and%20(semver%20eq%20%2716.3.11%27)%20and%20(revision%20eq%200)",
+    "body": "",
+    "status": 200,
+    "response": {
+      "d": []
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:44 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "8",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"8-eepYQefMJxbjM1EOFksU1TVmbdo\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57077889e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "GET",
+    "path": "/v6/release?$top=1&$select=id,revision&$filter=(belongs_to__application%20eq%202136996)%20and%20(semver_major%20eq%2016)%20and%20(semver_minor%20eq%203)%20and%20(semver_patch%20eq%2011)%20and%20(revision%20ne%20null)&$orderby=revision%20desc",
+    "body": "",
+    "status": 200,
+    "response": {
+      "d": []
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:44 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "8",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"8-eepYQefMJxbjM1EOFksU1TVmbdo\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57098b2de540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/release",
+    "body": {
+      "belongs_to__application": 2136996,
+      "created_at": "2024-05-27T18:47:35.255Z",
+      "commit": "84111c8be5b9aa02f580b2fa1810c299",
+      "composition": {
+        "version": "2.4",
+        "services": {
+          "balena-supervisor": {
+            "tty": true,
+            "build": {
+              "context": "./"
+            },
+            "labels": {
+              "io.balena.features.dbus": "1",
+              "io.balena.features.balena-api": "1",
+              "io.balena.features.balena-socket": "1"
+            },
+            "restart": "always",
+            "privileged": true,
+            "network_mode": "host"
+          }
+        }
+      },
+      "contract": "{\"name\": \"balena-supervisor\", \"type\": \"sw.application\", \"version\": \"16.3.11\", \"joinable\": false, \"provides\": [{\"slug\": \"sw.compose.long-volume-syntax\"}], \"description\": \"Balena Supervisor: balena's agent on devices.\"}",
+      "status": "running",
+      "source": "cloud",
+      "build_log": "[Info]               Starting build for amd64-supervisor, user accounts_balenacloud_balenaos_test_bot\n[Info]               Dashboard link: https://dashboard.balena-cloud.com/apps/1667442/devices\n[Info]               Building on 47be6de\n[Info]               Pulling previous images for caching purposes...\n[Success]            Successfully pulled cache images\n[Info]               Starting to build balena-supervisor\n[Success]            Successfully built service balena-supervisor\n[Info]               Uploading images\n[Success]            Successfully uploaded images\n[Info]               Built on 47be6de\n[Success]            Release successfully created!\n[Info]               Release: 84111c8be5b9aa02f580b2fa1810c299 (id: 3023927)\n[Info]               Build finished in 5 minutes, 36 seconds",
+      "is_invalidated": false,
+      "phase": null,
+      "semver": "16.3.11",
+      "semver_major": 16,
+      "semver_minor": 3,
+      "semver_patch": 11,
+      "semver_prerelease": "",
+      "semver_build": "",
+      "variant": "",
+      "revision": 0,
+      "known_issue_list": null,
+      "is_final": true,
+      "is_finalized_at__date": "2024-05-27T20:05:16.091Z",
+      "note": "027c2575 (Move OS variant retrieval to config module, 2024-05-16)\n59689b27 (Do not export balenaApi on api-binder, 2024-05-15)\nac2db387 (Move api-keys module to src/lib, 2024-05-15)\n48f75e61 (Do not re-export ContractObject on lib/contracts, 2024-05-15)\nbef5e784 (Move Compose(Network|Volume)Config to top level types, 2024-05-15)\n234e0de0 (Move composition types to compose/types, 2024-05-15)\n94de4006 (Split compose types into interface and implementation, 2024-05-15)",
+      "invalidation_reason": null
+    },
+    "status": 201,
+    "response": {
+      "id": 3045594,
+      "belongs_to__application": {
+        "__id": 2136996
+      },
+      "build_log": "[Info]               Starting build for amd64-supervisor, user accounts_balenacloud_balenaos_test_bot\n[Info]               Dashboard link: https://dashboard.balena-cloud.com/apps/1667442/devices\n[Info]               Building on 47be6de\n[Info]               Pulling previous images for caching purposes...\n[Success]            Successfully pulled cache images\n[Info]               Starting to build balena-supervisor\n[Success]            Successfully built service balena-supervisor\n[Info]               Uploading images\n[Success]            Successfully uploaded images\n[Info]               Built on 47be6de\n[Success]            Release successfully created!\n[Info]               Release: 84111c8be5b9aa02f580b2fa1810c299 (id: 3023927)\n[Info]               Build finished in 5 minutes, 36 seconds",
+      "commit": "84111c8be5b9aa02f580b2fa1810c299",
+      "composition": {
+        "version": "2.4",
+        "services": {
+          "balena-supervisor": {
+            "tty": true,
+            "build": {
+              "context": "./"
+            },
+            "labels": {
+              "io.balena.features.dbus": "1",
+              "io.balena.features.balena-api": "1",
+              "io.balena.features.balena-socket": "1"
+            },
+            "restart": "always",
+            "privileged": true,
+            "network_mode": "host"
+          }
+        }
+      },
+      "contract": "{\"name\": \"balena-supervisor\", \"type\": \"sw.application\", \"version\": \"16.3.11\", \"joinable\": false, \"provides\": [{\"slug\": \"sw.compose.long-volume-syntax\"}], \"description\": \"Balena Supervisor: balena's agent on devices.\"}",
+      "created_at": "2024-06-13T01:34:45.162Z",
+      "end_timestamp": "2024-06-13T01:34:44.333Z",
+      "invalidation_reason": null,
+      "is_created_by__user": null,
+      "is_final": true,
+      "is_finalized_at__date": "2024-06-13T01:34:45.782Z",
+      "is_invalidated": false,
+      "is_passing_tests": true,
+      "known_issue_list": null,
+      "note": "027c2575 (Move OS variant retrieval to config module, 2024-05-16)\n59689b27 (Do not export balenaApi on api-binder, 2024-05-15)\nac2db387 (Move api-keys module to src/lib, 2024-05-15)\n48f75e61 (Do not re-export ContractObject on lib/contracts, 2024-05-15)\nbef5e784 (Move Compose(Network|Volume)Config to top level types, 2024-05-15)\n234e0de0 (Move composition types to compose/types, 2024-05-15)\n94de4006 (Split compose types into interface and implementation, 2024-05-15)",
+      "phase": null,
+      "release_version": null,
+      "revision": 0,
+      "semver": "16.3.11",
+      "semver_build": "",
+      "semver_major": 16,
+      "semver_minor": 3,
+      "semver_patch": 11,
+      "semver_prerelease": "",
+      "source": "cloud",
+      "start_timestamp": "2024-06-13T01:34:44.333Z",
+      "status": "running",
+      "update_timestamp": "2024-06-13T01:34:45.782Z",
+      "variant": "",
+      "release_type": "final"
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:45 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Transfer-Encoding",
+      "chunked",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/release(@id)?@id=3045594",
+      "etag",
+      "W/\"9ef-ec5Mu5Jyis+RsNyxI2rcv/nCraw\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e570b6d05e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "2424"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/release_tag",
+    "body": {
+      "release": 3045594,
+      "tag_key": "balena-ci-commit-sha",
+      "value": "027c2575b1147b5395c61e3d824f9dff95e7f1d0"
+    },
+    "status": 201,
+    "response": {
+      "id": 1162316,
+      "release": {
+        "__id": 3045594
+      },
+      "tag_key": "balena-ci-commit-sha",
+      "value": "027c2575b1147b5395c61e3d824f9dff95e7f1d0"
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:46 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "125",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/release_tag(@id)?@id=1162316",
+      "etag",
+      "W/\"7d-W5xAd7iViAIbuvij8YG12sGImxE\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57113b7be540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "103"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/release_tag",
+    "body": {
+      "release": 3045594,
+      "tag_key": "balena-ci-id",
+      "value": "1872131302"
+    },
+    "status": 201,
+    "response": {
+      "id": 1162317,
+      "release": {
+        "__id": 3045594
+      },
+      "tag_key": "balena-ci-id",
+      "value": "1872131302"
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:46 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "87",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/release_tag(@id)?@id=1162317",
+      "etag",
+      "W/\"57-0asINUmaG9dkehvnpg2oq181MYM\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57118be1e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "65"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "GET",
+    "path": "/v6/service(application=2136996,service_name=%27balena-supervisor%27)",
+    "body": "",
+    "status": 200,
+    "response": {
+      "d": []
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:46 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "8",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"8-eepYQefMJxbjM1EOFksU1TVmbdo\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57137d95e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/service",
+    "body": {
+      "application": 2136996,
+      "service_name": "balena-supervisor"
+    },
+    "status": 201,
+    "response": {
+      "id": 2798877,
+      "created_at": "2024-06-13T01:34:46.792Z",
+      "application": {
+        "__id": 2136996
+      },
+      "service_name": "balena-supervisor"
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:46 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "120",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/service(@id)?@id=2798877",
+      "etag",
+      "W/\"78-1tAW8JLK/K3dDUVJ/hfe46MJsUo\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57159817e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "58"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/image",
+    "body": {
+      "content_hash": "sha256:388bd172a06f27bc639328958a9435332fa22b11ffa79e6084dabbd00047543d",
+      "is_a_build_of__service": 2798877,
+      "status": "running"
+    },
+    "status": 201,
+    "response": {
+      "id": 8972261,
+      "created_at": "2024-06-13T01:34:47.102Z",
+      "start_timestamp": "2024-06-13T01:34:44.333Z",
+      "end_timestamp": null,
+      "dockerfile": null,
+      "is_a_build_of__service": {
+        "__id": 2798877
+      },
+      "image_size": null,
+      "is_stored_at__image_location": "registry2.balena-cloud.com/v2/286cbc9dd0478cda91179737e7f617a8",
+      "project_type": null,
+      "error_message": null,
+      "build_log": null,
+      "push_timestamp": "2024-06-13T01:34:44.333Z",
+      "status": "running",
+      "content_hash": "sha256:388bd172a06f27bc639328958a9435332fa22b11ffa79e6084dabbd00047543d",
+      "contract": null
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:47 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "520",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/image(@id)?@id=8972261",
+      "etag",
+      "W/\"208-ZUiJgwbgy+VFkPB3LPawSh7JNqs\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e57178a1be540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "231"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "POST",
+    "path": "/v6/image__is_part_of__release",
+    "body": {
+      "is_part_of__release": 3045594,
+      "image": 8972261
+    },
+    "status": 201,
+    "response": {
+      "id": 8599220,
+      "created_at": "2024-06-13T01:34:47.439Z",
+      "image": {
+        "__id": 8972261
+      },
+      "is_part_of__release": {
+        "__id": 3045594
+      }
+    },
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:48 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "118",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "vary",
+      "X-HTTP-Method-Override, Accept-Encoding",
+      "Cache-Control",
+      "no-cache",
+      "location",
+      "/v6/image__is_part_of__release(@id)?@id=8599220",
+      "etag",
+      "W/\"76-ZUM8Rh3fD85BOrtdvba46jKcxBI\"",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e5719ac34e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "47"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "PATCH",
+    "path": "/v6/image(8972261)",
+    "status": 200,
+    "response": {"d": ["OK"]},
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:48 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "4",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"4-P9ln0Jp0jh8rJtb+Vi5xVaqH6d4\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e571f19d9e540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "44"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.balena-cloud.com:443",
+    "method": "PATCH",
+    "path": "/v6/release(3045594)",
+    "body": {
+      "status": "success"
+    },
+    "status": 200,
+    "response": "OK",
+    "rawHeaders": [
+      "Date",
+      "Thu, 13 Jun 2024 01:34:49 GMT",
+      "Content-Type",
+      "application/json; charset=utf-8",
+      "Content-Length",
+      "4",
+      "Connection",
+      "keep-alive",
+      "x-frame-options",
+      "DENY",
+      "x-content-type-options",
+      "nosniff",
+      "access-control-allow-origin",
+      "*",
+      "access-control-allow-credentials",
+      "true",
+      "access-control-expose-headers",
+      "Retry-After",
+      "Cache-Control",
+      "no-cache",
+      "etag",
+      "W/\"4-P9ln0Jp0jh8rJtb+Vi5xVaqH6d4\"",
+      "vary",
+      "Accept-Encoding",
+      "CF-Cache-Status",
+      "DYNAMIC",
+      "Strict-Transport-Security",
+      "max-age=15552000",
+      "Server",
+      "cloudflare",
+      "CF-RAY",
+      "892e5720cb8ae540-MNL",
+      "alt-svc",
+      "h3=\":443\"; ma=86400"
+    ],
+    "reqheaders": {
+      "x-balena-client": [
+        "balena-sdk/19.5.11"
+      ],
+      "content-type": [
+        "application/json"
+      ],
+      "accept-encoding": [
+        "compress, gzip"
+      ],
+      "accept": [
+        "*/*"
+      ],
+      "content-length": [
+        "109"
+      ],
+      "host": "api.balena-cloud.com"
+    },
+    "responseIsBinary": false
+  }
+]

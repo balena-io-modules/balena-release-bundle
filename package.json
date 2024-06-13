@@ -1,0 +1,51 @@
+{
+  "name": "@balena/release-bundle",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Balena Release Bundle SDK",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "lint": "balena-lint --project ./tsconfig.test.json src/ test/ && tsc --noEmit",
+    "build": "npm run clean && npm run lint && tsc --project ./",
+    "test": "ts-mocha --project ./tsconfig.test.json",
+    "prettify": "balena-lint --project ./tsconfig.test.json --fix src/ test/",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balena-io-modules/balena-release-bundle.git"
+  },
+  "keywords": [
+    "release",
+    "bundle",
+    "package"
+  ],
+  "author": "Balena Inc. <hello@balena.io>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/balena-io-modules/balena-release-bundle/issues"
+  },
+  "homepage": "https://github.com/balena-io-modules/balena-release-bundle#readme",
+  "dependencies": {
+    "@balena/resource-bundle": "^0.3.1",
+    "balena-sdk": "^19.5.11"
+  },
+  "devDependencies": {
+    "@balena/lint": "^7.2.1",
+    "@types/chai-as-promised": "^7.1.3",
+    "@types/mocha": "^10.0.1",
+    "@types/tar-stream": "^3.1.3",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "lodash": "^4.17.21",
+    "mocha": "^10.2.0",
+    "nock": "^13.5.4",
+    "rimraf": "^5.0.1",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.2.2"
+  }
+}
