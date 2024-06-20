@@ -27,31 +27,43 @@ interface ReadOptions {
 }
 
 interface Release {
+	semver_major: number;
+	semver_minor: number;
+	semver_patch: number;
+	status: SDK.ReleaseStatus;
 	releaseImages: Array<{
 		image: SDK.Image;
 		service: string;
 	}>;
+	releaseTags: Array<Pick<SDK.ReleaseTag, 'tag_key' | 'value'>>;
 }
 
 function normalizeManifest(manifest: SDK.Release): Release {
-	const release: Release = { releaseImages: [] };
+	const release: Release = {
+		semver_major: manifest.semver_major,
+		semver_minor: manifest.semver_minor,
+		semver_patch: manifest.semver_patch,
+		status: manifest.status,
+		releaseImages: [],
+		releaseTags: [],
+	};
 
-	if (manifest.status !== 'success') {
+	if (release.status !== 'success') {
 		throw new Error(
 			`Expected release to have status 'success' but found ${manifest.status}`,
 		);
 	}
-	if (typeof manifest.semver_major !== 'number') {
+	if (typeof release.semver_major !== 'number') {
 		throw new Error(
 			`Expected release to have semver_major that is a number but found ${typeof manifest.semver_major}`,
 		);
 	}
-	if (typeof manifest.semver_minor !== 'number') {
+	if (typeof release.semver_minor !== 'number') {
 		throw new Error(
 			`Expected release to have semver_minor that is a number but found ${typeof manifest.semver_minor}`,
 		);
 	}
-	if (typeof manifest.semver_patch !== 'number') {
+	if (typeof release.semver_patch !== 'number') {
 		throw new Error(
 			`Expected release to have semver_patch that is a number but found ${typeof manifest.semver_patch}`,
 		);
@@ -64,34 +76,55 @@ function normalizeManifest(manifest: SDK.Release): Release {
 		);
 	}
 	for (const releaseImage of manifest.release_image) {
-		const image = releaseImage.image;
-		if (!Array.isArray(image)) {
+		if (!Array.isArray(releaseImage.image)) {
 			throw new Error(
-				`Expected array of images in release image ${releaseImage.id} but found ${typeof image}`,
+				`Expected array of images in release image ${releaseImage.id} but found ${typeof releaseImage.image}`,
 			);
 		}
-		if (image[0].status !== 'success') {
+		const [image] = releaseImage.image;
+		if (image.status !== 'success') {
 			throw new Error(
-				`Expected release image to have status 'success' but found ${image[0].status}`,
+				`Expected release image to have status 'success' but found ${image.status}`,
 			);
 		}
-		if (image[0].content_hash == null) {
+		if (typeof image.content_hash !== 'string') {
 			throw new Error(
-				`Expected a content hash for release image ${releaseImage.id} but found ${image[0].content_hash}`,
+				`Expected content hash for release image ${releaseImage.id} to be a string but found ${image.content_hash}`,
 			);
 		}
-		const service = image[0].is_a_build_of__service;
-		if (!Array.isArray(service)) {
+		if (!Array.isArray(image.is_a_build_of__service)) {
 			throw new Error(
-				`Expected array of services in release image ${releaseImage.id} but found ${typeof service}`,
+				`Expected array of services in release image ${releaseImage.id} but found ${typeof image.is_a_build_of__service}`,
 			);
 		}
+		const [service] = image.is_a_build_of__service;
 		release.releaseImages.push({
-			image: image[0],
-			service: service[0].service_name,
+			image: image,
+			service: service.service_name,
 		});
 	}
 	// TODO: Validate release tags
+	if (!Array.isArray(manifest.release_tag)) {
+		throw new Error(
+			`Expected array of release tags but found ${typeof manifest.release_tag}`,
+		);
+	}
+	for (const releaseTag of manifest.release_tag) {
+		if (typeof releaseTag.tag_key !== 'string') {
+			throw new Error(
+				`Expected key of release tag ${releaseTag.id} to be a string but found ${releaseTag.tag_key}`,
+			);
+		}
+		if (typeof releaseTag.value !== 'string') {
+			throw new Error(
+				`Expected value of release tag ${releaseTag.id} to be a string but found ${releaseTag.value}`,
+			);
+		}
+		release.releaseTags.push({
+			tag_key: releaseTag.tag_key,
+			value: releaseTag.value,
+		});
+	}
 
 	return release;
 }
@@ -165,9 +198,9 @@ export async function apply(options: ReadOptions): Promise<number> {
 			update_timestamp: currentDateIso,
 			phase: bundle.manifest.phase,
 			semver: bundle.manifest.semver,
-			semver_major: bundle.manifest.semver_major,
-			semver_minor: bundle.manifest.semver_minor,
-			semver_patch: bundle.manifest.semver_patch,
+			semver_major: release.semver_major,
+			semver_minor: release.semver_minor,
+			semver_patch: release.semver_patch,
 			semver_prerelease: bundle.manifest.semver_prerelease,
 			semver_build: bundle.manifest.semver_build,
 			variant: bundle.manifest.variant,
@@ -183,7 +216,7 @@ export async function apply(options: ReadOptions): Promise<number> {
 	// create release tags
 	if (bundle.manifest.release_tag) {
 		await Promise.all(
-			bundle.manifest.release_tag.map(async (rt: SDK.ReleaseTag) => {
+			release.releaseTags.map(async (rt: SDK.ReleaseTag) => {
 				await sdk.pine.post({
 					resource: 'release_tag',
 					body: {
@@ -254,7 +287,7 @@ export async function apply(options: ReadOptions): Promise<number> {
 		resource: 'release',
 		id: localRelease.id,
 		body: {
-			status: bundle.manifest.status,
+			status: release.status,
 			// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 			end_timestamp: currentDateIso,
 			update_timestamp: currentDateIso,
