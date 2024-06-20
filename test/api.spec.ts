@@ -20,7 +20,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { describe } from 'mocha';
 import { createReadStream, createWriteStream } from 'fs';
-import type { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import * as fs from 'fs/promises';
 import * as nock from 'nock';
 import * as resourceBundle from '@balena/resource-bundle';
@@ -33,21 +33,6 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const apiUrl = 'https://api.balena-cloud.com';
-
-async function writeStreamToTarFile(
-	stream: Readable,
-	tarFilePath: string,
-): Promise<void> {
-	const writable = createWriteStream(tarFilePath);
-
-	return new Promise((resolve, reject) => {
-		stream.pipe(writable);
-
-		stream.on('end', resolve);
-		stream.on('error', reject);
-		writable.on('error', reject);
-	});
-}
 
 describe('Basic create release usage', () => {
 	before(() => {
@@ -88,9 +73,9 @@ describe('Basic create release usage', () => {
 				path.resolve(__dirname, 'mocks', mockFile),
 				JSON.stringify(nock.recorder.play(), null, 2),
 			);
-			await writeStreamToTarFile(
+			await pipeline(
 				releaseBundle,
-				'test/fixtures/release-bundle.tar',
+				createWriteStream('test/fixtures/release-bundle.tar'),
 			);
 		} else {
 			const readableBundle = await resourceBundle.read<SDK.Release>(
