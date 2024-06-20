@@ -17,7 +17,7 @@
   "include": [
     "src/**/*.ts",
     "typings/**/*.d.ts"
-  ],
+, "sample-apply.ts"  ],
   "exclude": [
     "node_modules"
   ]

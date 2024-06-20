@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import type { ReleaseManifest } from './types';
 import * as resourceBundle from '@balena/resource-bundle';
 import type { Readable } from 'stream';
-import { getSdk } from 'balena-sdk';
+import * as SDK from 'balena-sdk';
 
+// TODO: change parameters to accept the SDK instance instead
 interface CreateOptions {
 	apiUrl: string;
 	authToken: string;
@@ -27,13 +27,14 @@ interface CreateOptions {
 }
 
 export async function create(options: CreateOptions): Promise<Readable> {
-	const sdk = getSdk({
+	// TODO: pass the SDK instead
+	const sdk = SDK.getSdk({
 		apiUrl: options.apiUrl,
 		dataDirectory: false,
 	});
 	await sdk.auth.loginWithToken(options.authToken);
 
-	const remoteRelease = (await sdk.pine.get({
+	const remoteRelease = await sdk.pine.get<SDK.Release>({
 		resource: 'release',
 		id: options.releaseId,
 		options: {
@@ -52,6 +53,7 @@ export async function create(options: CreateOptions): Promise<Readable> {
 								'is_a_build_of__service',
 								'is_stored_at__image_location',
 								'push_timestamp',
+								'status',
 							],
 							$expand: {
 								is_a_build_of__service: { $select: ['id', 'service_name'] },
@@ -61,13 +63,19 @@ export async function create(options: CreateOptions): Promise<Readable> {
 				},
 			},
 		},
-	})) as unknown as ReleaseManifest;
+	});
 
 	if (!remoteRelease) {
 		throw new Error('Release not found.');
 	}
 
-	const bundle = new resourceBundle.WritableBundle<ReleaseManifest>({
+	if (remoteRelease.status !== 'success') {
+		throw new Error(
+			'Could not create bundle from release; release bundles can only be created from successful releases.',
+		);
+	}
+
+	const bundle = new resourceBundle.WritableBundle<SDK.Release>({
 		type: 'io.balena.release',
 		manifest: remoteRelease,
 	});

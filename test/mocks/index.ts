@@ -25,6 +25,14 @@ export default async function mockResponses(fileName: string) {
 	) as nock.Definition[];
 	nockDefinitions.forEach((definition) => {
 		// Allow partial matching of request body
+		// TODO: Handle timestamps / ignored properties
+		for (const key in definition.body as object) {
+			if (Object.prototype.hasOwnProperty.call(definition.body, key)) {
+				if (key.includes('timestamp')) {
+					delete definition.body![key];
+				}
+			}
+		}
 		nock(definition.scope)
 			[
 				definition.method!.toLowerCase()

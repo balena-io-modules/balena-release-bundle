@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import type * as stream from 'stream';
-import type { ReleaseManifest } from './types';
 import * as resourceBundle from '@balena/resource-bundle';
 import * as SDK from 'balena-sdk';
 
@@ -26,73 +24,95 @@ interface ReadOptions {
 	application: number;
 	authToken: string;
 	stream: stream.Readable;
-	force?: boolean;
 }
 
-function generateUniqueKey() {
-	return uuidv4().replace(/-/g, '');
+interface Release {
+	releaseImages: Array<{
+		image: SDK.Image;
+		service: string;
+	}>;
 }
 
-async function backfillLowerRevisions(
-	sdk: SDK.BalenaSDK,
-	application: number,
-	currentDateIso: string,
-	manifest: ReleaseManifest,
-): Promise<void> {
-	const [highestSameSemverLocalReleases] = await sdk.pine.get({
-		resource: 'release',
-		options: {
-			$top: 1,
-			$select: ['id', 'revision'],
-			$filter: {
-				belongs_to__application: application,
-				semver_major: manifest.semver_major,
-				semver_minor: manifest.semver_minor,
-				semver_patch: manifest.semver_patch,
-				revision: { $ne: null },
-			},
-			$orderby: 'revision desc',
-		},
-	});
+function normalizeManifest(manifest: SDK.Release): Release {
+	const release: Release = { releaseImages: [] };
 
-	const version = `${manifest.semver_major}.${manifest.semver_minor}.${manifest.semver_patch}`;
-	for (
-		//
-		let revision =
-			highestSameSemverLocalReleases == null
-				? 0
-				: // we have already $filtered for this so ! is fine
-					highestSameSemverLocalReleases.revision! + 1;
-		revision < (manifest.revision ? manifest.revision : 0);
-		revision++
-	) {
-		await sdk.pine.post({
-			resource: 'release',
-			body: {
-				belongs_to__application: application,
-				status: 'failed',
-				start_timestamp: currentDateIso,
-				end_timestamp: currentDateIso,
-				update_timestamp: currentDateIso,
-				source: manifest.source,
-				composition: manifest.composition,
-				commit: generateUniqueKey(),
-				contract: manifest.contract,
-				semver: revision === 0 ? version : `${version}+rev${revision}`,
-			},
-		});
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+	if (manifest.status !== 'success') {
+		throw new Error(
+			`Expected release to have status 'success' but found ${manifest.status}`,
+		);
 	}
+	if (typeof manifest.semver_major !== 'number') {
+		throw new Error(
+			`Expected release to have semver_major that is a number but found ${typeof manifest.semver_major}`,
+		);
+	}
+	if (typeof manifest.semver_minor !== 'number') {
+		throw new Error(
+			`Expected release to have semver_minor that is a number but found ${typeof manifest.semver_minor}`,
+		);
+	}
+	if (typeof manifest.semver_patch !== 'number') {
+		throw new Error(
+			`Expected release to have semver_patch that is a number but found ${typeof manifest.semver_patch}`,
+		);
+	}
+
+	// Validate release images
+	if (!Array.isArray(manifest.release_image)) {
+		throw new Error(
+			`Expected array of release images but found ${typeof manifest.release_image}`,
+		);
+	}
+	for (const releaseImage of manifest.release_image) {
+		const image = releaseImage.image;
+		if (!Array.isArray(image)) {
+			throw new Error(
+				`Expected array of images in release image ${releaseImage.id} but found ${typeof image}`,
+			);
+		}
+		if (image[0].status !== 'success') {
+			throw new Error(
+				`Expected release image to have status 'success' but found ${image[0].status}`,
+			);
+		}
+		if (image[0].content_hash == null) {
+			throw new Error(
+				`Expected a content hash for release image ${releaseImage.id} but found ${image[0].content_hash}`,
+			);
+		}
+		const service = image[0].is_a_build_of__service;
+		if (!Array.isArray(service)) {
+			throw new Error(
+				`Expected array of services in release image ${releaseImage.id} but found ${typeof service}`,
+			);
+		}
+		release.releaseImages.push({
+			image: image[0],
+			service: service[0].service_name,
+		});
+	}
+	// TODO: Validate release tags
+
+	return release;
 }
 
 export async function apply(options: ReadOptions): Promise<number> {
 	// FIXME: clone release timestamps when the API already allows it
 	const currentDateIso = new Date(Date.now()).toISOString();
 
-	const bundle = await resourceBundle.read<ReleaseManifest>(
+	const bundle = await resourceBundle.read<SDK.Release>(
 		options.stream,
 		'io.balena.release',
 	);
+
+	// TODO: validate if manifest version is compatible with SDK
+
+	let release: Release;
+	try {
+		release = normalizeManifest(bundle.manifest);
+	} catch (error) {
+		throw new Error(`Manifest is malformed: ${error.message}`);
+	}
 
 	const sdk = SDK.getSdk({
 		apiUrl: options.apiUrl,
@@ -100,80 +120,30 @@ export async function apply(options: ReadOptions): Promise<number> {
 	});
 	await sdk.auth.loginWithToken(options.authToken);
 
-	// TODO: validate manifest
-	// Check if a release with the same version and revision exists
-	const [existingRelease] = await sdk.pine.get({
+	// This validates that the application exists
+	// throws an error if it does not
+	const application = await sdk.models.application.get(options.application, {
+		$select: ['id'],
+	});
+
+	const [existingRelease] = await sdk.pine.get<SDK.Release>({
 		resource: 'release',
 		options: {
-			$select: [
-				'id',
-				'is_final',
-				'is_invalidated',
-				'revision',
-				'semver',
-				'status',
-				'version',
-			],
+			$select: ['id', 'version'],
 			$filter: {
-				belongs_to__application: options.application,
-				semver: bundle.manifest.semver,
-				revision: bundle.manifest.revision,
+				belongs_to__application: application.id,
+				semver_major: bundle.manifest.semver_major,
+				semver_minor: bundle.manifest.semver_minor,
+				semver_patch: bundle.manifest.semver_patch,
+				status: 'success',
 			},
+			$top: 1,
 		},
 	});
 
-	if (existingRelease) {
-		if (!options.force) {
-			throw new Error(
-				'An application release with the same version already exists.',
-			);
-		}
-		// Remove images mapped to a release
-		// when the following conditions about the release is true
-		// - the release is is_final is false and/or is_invalidated is true
-		// - force flag is set to true
-		type ReleaseImageMap = {
-			id: number;
-			created_at: string;
-			image: {
-				__id: number;
-			};
-			is_part_of__release: {
-				__id: number;
-			};
-		};
-		const releaseImageMappings = (await sdk.pine.get({
-			resource: 'image__is_part_of__release',
-			options: {
-				$filter: {
-					is_part_of__release: existingRelease.id,
-				},
-			},
-		})) as unknown as ReleaseImageMap[];
-
-		await Promise.all(
-			releaseImageMappings.map(async (releaseImageMap) => {
-				await sdk.pine.delete({
-					resource: 'image__is_part_of__release',
-					id: releaseImageMap.id,
-				});
-			}),
-		);
-
-		// TODO: Delete images tied to the old release
-		// TODO: Remove release tags of old release
-	}
-
-	// Backfill lower releases to workaround the balena API constraint
-	// that a particular release revision may only be created if
-	// lower revisions exist
-	// TODO: Remove backfilling once balena API constraint is removed
-	if (bundle.manifest.revision != null) {
-		await backfillLowerRevisions(
-			sdk,
-			options.application,
-			currentDateIso,
-			bundle.manifest,
+	if (existingRelease != null) {
+		throw new Error(
+			`A successful release with the version ${existingRelease.version.version} already exists and duplicates are not allowed.`,
 		);
 	}
 
@@ -201,7 +171,6 @@ export async function apply(options: ReadOptions): Promise<number> {
 			semver_prerelease: bundle.manifest.semver_prerelease,
 			semver_build: bundle.manifest.semver_build,
 			variant: bundle.manifest.variant,
-			revision: bundle.manifest.revision,
 			known_issue_list: bundle.manifest.known_issue_list,
 			raw_version: bundle.manifest.raw_version,
 			is_final: bundle.manifest.is_final,
@@ -214,7 +183,7 @@ export async function apply(options: ReadOptions): Promise<number> {
 	// create release tags
 	if (bundle.manifest.release_tag) {
 		await Promise.all(
-			bundle.manifest.release_tag.map(async (rt: { [index: string]: any }) => {
+			bundle.manifest.release_tag.map(async (rt: SDK.ReleaseTag) => {
 				await sdk.pine.post({
 					resource: 'release_tag',
 					body: {
@@ -232,27 +201,25 @@ export async function apply(options: ReadOptions): Promise<number> {
 	// the api can generate an image name that will use to upload the
 	// artifacts to the registry. then we begin upload, and finally
 	// mark the image entries as "success"-ful.
-	for (const remoteImage of bundle.manifest.release_image!) {
-		const localService: any = await sdk.pine.getOrCreate({
+	for (const releaseImage of release.releaseImages) {
+		const localService = await sdk.pine.getOrCreate<SDK.Service>({
 			resource: 'service',
 			id: {
 				application: options.application,
-				service_name:
-					remoteImage.image[0].is_a_build_of__service[0].service_name,
+				service_name: releaseImage.service,
 			},
 			body: {
 				application: options.application,
-				service_name:
-					remoteImage.image[0].is_a_build_of__service[0].service_name,
+				service_name: releaseImage.service,
 			},
 		});
 
 		// There is a restriction in the API that requires images to be created
 		// with the current date.
-		const localImage: any = await sdk.pine.post({
+		const localImage = await sdk.pine.post<SDK.Image>({
 			resource: 'image',
 			body: {
-				content_hash: remoteImage.image[0].content_hash,
+				content_hash: releaseImage.image.content_hash,
 				is_a_build_of__service: localService.id,
 				status: 'running',
 				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
@@ -269,56 +236,14 @@ export async function apply(options: ReadOptions): Promise<number> {
 			},
 		});
 
-		// Requesting for a token fails if API_TOKEN is not provided.
-		// let additionalArguments: string[] = [];
-		// if (await balenaCloudSdk.auth.isLoggedIn()) {
-		// 	const remoteAuthResponse = await balenaCloudSdk.request.send({
-		// 		baseUrl: await balenaCloudSdk.settings.get('apiUrl'),
-		// 		url: '/auth/v1/token',
-		// 		qs: {
-		// 			service: remoteImage.registry,
-		// 			scope: `repository:${remoteImage.repository}:pull`,
-		// 		},
-		// 	});
-		// 	additionalArguments = [
-		// 		'--src-registry-token',
-		// 		remoteAuthResponse.body.token,
-		// 	];
-		// }
-
-		// There is currently a bug in the SDK that does not return the correct API URL
-		// so we can't use `await sdk.settings.get('apiUrl');`
-		// const localRegistryUrl = await sdk.settings.get('registry2Url');
-		// const localAuthResponse = await sdk.request.send({
-		// 	baseUrl: await sdk.settings.get('apiUrl'),
-		// 	url: '/auth/v1/token',
-		// 	qs: {
-		// 		service: localRegistryUrl,
-		// 		scope: `repository:v2/${
-		// 			localImage.is_stored_at__image_location.split('/v2/')[1]
-		// 		}:pull,push`,
-		// 	},
-		// });
-		// const result = await runCommand('skopeo', [
-		// 	'copy',
-		// 	'--override-os',
-		// 	'linux',
-		// 	...additionalArguments,
-		// 	'--dest-registry-token',
-		// 	localAuthResponse.body.token,
-		// 	`docker://${remoteImage.image_name}@${remoteImage.content_hash}`,
-		// 	`docker://${localRegistryUrl}/v2/${
-		// 		localImage.is_stored_at__image_location.split('/v2/')[1]
-		// 	}:latest`,
-		// ]);
-		// console.log(result);
+		// TODO: upload images from the release bundle at this part
 
 		// mark image as successful
 		await sdk.pine.patch({
 			resource: 'image',
 			id: localImage.id,
 			body: {
-				status: remoteImage.image[0].status,
+				status: releaseImage.image.status,
 				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 				end_timestamp: currentDateIso,
 			},

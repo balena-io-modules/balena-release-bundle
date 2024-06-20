@@ -2,7 +2,7 @@
   {
     "scope": "https://api.balena-cloud.com:443",
     "method": "GET",
-    "path": "/v6/release(3023927)?$expand=release_tag($select=tag_key,value),release_image($select=created_at,image;$expand=image($select=created_at,content_hash,end_timestamp,is_a_build_of__service,is_stored_at__image_location,push_timestamp;$expand=is_a_build_of__service($select=id,service_name)))",
+    "path": "/v6/release(3023927)?$expand=release_tag($select=tag_key,value),release_image($select=created_at,image;$expand=image($select=created_at,content_hash,end_timestamp,is_a_build_of__service,is_stored_at__image_location,push_timestamp,status;$expand=is_a_build_of__service($select=id,service_name)))",
     "body": "",
     "status": 200,
     "response": {
@@ -32,7 +32,8 @@
               "content_hash": "sha256:388bd172a06f27bc639328958a9435332fa22b11ffa79e6084dabbd00047543d",
               "end_timestamp": "2024-05-27T18:52:19.880Z",
               "is_stored_at__image_location": "registry2.balena-cloud.com/v2/057d5134fda449e34171c0b4e969493c",
-              "push_timestamp": "2024-05-27T18:53:09.778Z"
+              "push_timestamp": "2024-05-27T18:53:09.778Z",
+              "status": "success"
             }
           ],
           "created_at": "2024-05-27T18:53:10.060Z"
@@ -93,10 +94,11 @@
       "release_type": "final"
     }
   ]
-},
+}
+,
     "rawHeaders": [
       "Date",
-      "Thu, 13 Jun 2024 01:49:27 GMT",
+      "Wed, 19 Jun 2024 11:06:23 GMT",
       "Content-Type",
       "application/json; charset=utf-8",
       "Transfer-Encoding",
@@ -116,7 +118,7 @@
       "Cache-Control",
       "no-cache",
       "etag",
-      "W/\"c65-839xKaTWmgR51jAxBz92d6B2Zs0\"",
+      "W/\"c78-7/7fj5NqVj3NrJQWJdUculeGdSA\"",
       "vary",
       "Accept-Encoding",
       "CF-Cache-Status",
@@ -126,24 +128,12 @@
       "Server",
       "cloudflare",
       "CF-RAY",
-      "892e6c945ca1e540-MNL",
+      "89630ca67d9584b7-HKG",
       "Content-Encoding",
       "gzip",
       "alt-svc",
       "h3=\":443\"; ma=86400"
     ],
-    "reqheaders": {
-      "x-balena-client": [
-        "balena-sdk/19.5.11"
-      ],
-      "accept-encoding": [
-        "compress, gzip"
-      ],
-      "accept": [
-        "*/*"
-      ],
-      "host": "api.balena-cloud.com"
-    },
     "responseIsBinary": false
   }
 ]

@@ -17,4 +17,3 @@
 
 export { create } from './create';
 export { apply } from './apply';
-export * from './types';
