@@ -1,4 +1,17 @@
 - commits:
+    - subject: Adds necessary validation for required manifest properties.
+      hash: be28e59efc35302d70a4b0693003aecccb7b976f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.1.1
+  title: ""
+  date: 2024-06-20T17:19:49.283Z
+- commits:
     - subject: Only successful releases can be exported/imported from release bundles.
       hash: 6087d700fd92e1ddc45b118d2c3008ff10273366
       body: ""
