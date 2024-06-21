@@ -24,15 +24,12 @@ import { pipeline } from 'stream/promises';
 import * as fs from 'fs/promises';
 import * as nock from 'nock';
 import * as resourceBundle from '@balena/resource-bundle';
-import authToken from './fixtures/authToken';
 import mockResponses from './mocks';
 import * as path from 'path';
 import * as SDK from 'balena-sdk';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-
-const apiUrl = 'https://api.balena-cloud.com';
 
 describe('Basic create release usage', () => {
 	before(() => {
@@ -50,21 +47,18 @@ describe('Basic create release usage', () => {
 	it('Creates a release bundle using the release ID', async () => {
 		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
 		const mockFile = 'create-from-existing-release.json';
-		let sdkToken = authToken;
 		if (process.env.UPDATE_MOCKS === 'true') {
 			console.log('Recording...');
 			nock.recorder.rec({
 				dont_print: true,
 				output_objects: true,
 			});
-			const sdk = SDK.getSdk();
-			sdkToken = await sdk.auth.getToken();
 		} else {
 			await mockResponses(mockFile);
 		}
+		const sdk = SDK.getSdk();
 		const releaseBundle = await bundle.create({
-			apiUrl,
-			authToken: sdkToken,
+			sdk,
 			releaseId: 3023927,
 		});
 		if (process.env.UPDATE_MOCKS === 'true') {
@@ -95,21 +89,18 @@ describe('Basic create release usage', () => {
 	it('Should fail to create a release bundle using a non-existing release ID', async () => {
 		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
 		const mockFile = 'create-from-nonexisting-release.json';
-		let sdkToken = authToken;
 		if (process.env.UPDATE_MOCKS === 'true') {
 			nock.recorder.rec({
 				dont_print: true,
 				output_objects: true,
 			});
-			const sdk = SDK.getSdk();
-			sdkToken = await sdk.auth.getToken();
 		} else {
 			await mockResponses(mockFile);
 		}
+		const sdk = SDK.getSdk();
 		if (process.env.UPDATE_MOCKS === 'true') {
 			await bundle.create({
-				apiUrl,
-				authToken: sdkToken,
+				sdk,
 				releaseId: 3023927,
 			});
 			await fs.writeFile(
@@ -119,8 +110,7 @@ describe('Basic create release usage', () => {
 		} else {
 			await expect(
 				bundle.create({
-					apiUrl,
-					authToken: sdkToken,
+					sdk,
 					releaseId: 3023927,
 				}),
 			).to.be.rejectedWith(Error, 'Release not found.');
@@ -143,20 +133,17 @@ describe('Basic apply release usage', () => {
 
 	it('Applies the release bundle to a fleet', async () => {
 		const mockFile = 'apply-release-bundle-to-fleet.json';
-		let sdkToken = authToken;
 		if (process.env.UPDATE_MOCKS === 'true') {
 			nock.recorder.rec({
 				dont_print: true,
 				output_objects: true,
 			});
-			const sdk = SDK.getSdk();
-			sdkToken = await sdk.auth.getToken();
 		}
+		const sdk = SDK.getSdk();
 		await mockResponses(mockFile);
 		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
 		await bundle.apply({
-			apiUrl,
-			authToken: sdkToken,
+			sdk,
 			application: 2136996,
 			stream: bundleStream,
 		});
@@ -170,21 +157,18 @@ describe('Basic apply release usage', () => {
 
 	it('Should fail in applying the release bundle to a fleet with existing successful release', async () => {
 		const mockFile = 'apply-release-bundle-to-fleet-with-existing.json';
-		let sdkToken = authToken;
 		if (process.env.UPDATE_MOCKS === 'true') {
 			nock.recorder.rec({
 				dont_print: true,
 				output_objects: true,
 			});
-			const sdk = SDK.getSdk();
-			sdkToken = await sdk.auth.getToken();
 		}
+		const sdk = SDK.getSdk();
 		await mockResponses(mockFile);
 		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
 		await expect(
 			bundle.apply({
-				apiUrl,
-				authToken: sdkToken,
+				sdk,
 				application: 2136996,
 				stream: bundleStream,
 			}),

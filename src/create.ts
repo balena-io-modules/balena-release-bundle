@@ -17,26 +17,21 @@
 
 import * as resourceBundle from '@balena/resource-bundle';
 import type { Readable } from 'stream';
-import * as SDK from 'balena-sdk';
+import type * as SDK from 'balena-sdk';
 
 // TODO: change parameters to accept the SDK instance instead
 interface CreateOptions {
-	apiUrl: string;
-	authToken: string;
+	sdk: SDK.BalenaSDK;
 	releaseId: number;
 }
 
 export async function create(options: CreateOptions): Promise<Readable> {
 	// TODO: pass the SDK instead
-	const sdk = SDK.getSdk({
-		apiUrl: options.apiUrl,
-		dataDirectory: false,
-	});
-	await sdk.auth.loginWithToken(options.authToken);
+	const { sdk, releaseId } = options;
 
 	const remoteRelease = await sdk.pine.get<SDK.Release>({
 		resource: 'release',
-		id: options.releaseId,
+		id: releaseId,
 		options: {
 			$expand: {
 				release_tag: {

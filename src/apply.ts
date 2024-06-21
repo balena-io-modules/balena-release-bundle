@@ -17,12 +17,11 @@
 
 import type * as stream from 'stream';
 import * as resourceBundle from '@balena/resource-bundle';
-import * as SDK from 'balena-sdk';
+import type * as SDK from 'balena-sdk';
 
-interface ReadOptions {
-	apiUrl: string;
+interface ApplyOptions {
 	application: number;
-	authToken: string;
+	sdk: SDK.BalenaSDK;
 	stream: stream.Readable;
 }
 
@@ -129,7 +128,8 @@ function normalizeManifest(manifest: SDK.Release): Release {
 	return release;
 }
 
-export async function apply(options: ReadOptions): Promise<number> {
+export async function apply(options: ApplyOptions): Promise<number> {
+	const { sdk } = options;
 	// FIXME: clone release timestamps when the API already allows it
 	const currentDateIso = new Date(Date.now()).toISOString();
 
@@ -146,12 +146,6 @@ export async function apply(options: ReadOptions): Promise<number> {
 	} catch (error) {
 		throw new Error(`Manifest is malformed: ${error.message}`);
 	}
-
-	const sdk = SDK.getSdk({
-		apiUrl: options.apiUrl,
-		dataDirectory: false,
-	});
-	await sdk.auth.loginWithToken(options.authToken);
 
 	// This validates that the application exists
 	// throws an error if it does not
@@ -183,7 +177,7 @@ export async function apply(options: ReadOptions): Promise<number> {
 	const localRelease = await sdk.pine.post<SDK.Release>({
 		resource: 'release',
 		body: {
-			belongs_to__application: options.application,
+			belongs_to__application: application.id,
 			created_at: bundle.manifest.created_at,
 			commit: bundle.manifest.commit,
 			composition: bundle.manifest.composition,
@@ -238,11 +232,11 @@ export async function apply(options: ReadOptions): Promise<number> {
 		const localService = await sdk.pine.getOrCreate<SDK.Service>({
 			resource: 'service',
 			id: {
-				application: options.application,
+				application: application.id,
 				service_name: releaseImage.service,
 			},
 			body: {
-				application: options.application,
+				application: application.id,
 				service_name: releaseImage.service,
 			},
 		});
