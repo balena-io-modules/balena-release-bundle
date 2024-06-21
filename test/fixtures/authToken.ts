@@ -1,1 +1,0 @@
-export default 'MzJkZTRhMjktODg2ZS00YzJkLWE5OWMtOTUzNjlhZTEwNWQ5Cg';
