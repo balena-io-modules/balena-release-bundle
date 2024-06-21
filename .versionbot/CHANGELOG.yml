@@ -1,4 +1,19 @@
 - commits:
+    - subject: Sets the Balena SDK as a peer dependency.
+      hash: 14d19d24d3587ea9fcb89b0e5c28f591225f381c
+      body: |
+        This also sets the SDK as a required argument for creating and applying
+        release bundles.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.2.0
+  title: ""
+  date: 2024-06-21T10:37:06.292Z
+- commits:
     - subject: Adds necessary validation for required manifest properties.
       hash: be28e59efc35302d70a4b0693003aecccb7b976f
       body: ""
