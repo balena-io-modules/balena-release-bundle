@@ -30,43 +30,55 @@ import * as SDK from 'balena-sdk';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
+before(function () {
+	nock.disableNetConnect();
+});
 
-describe('Basic create release usage', () => {
-	before(() => {
-		nock.disableNetConnect();
-	});
+beforeEach(async function () {
+	const mockFile = `${this.currentTest?.title?.replace(/ /g, '-').toLowerCase()}.json`;
+	if (process.env.UPDATE_MOCKS === 'true') {
+		nock.recorder.rec({
+			dont_print: true,
+			output_objects: true,
+		});
+	}
+	await mockResponses(mockFile);
+});
 
-	after(() => {
-		nock.enableNetConnect();
-	});
+afterEach(async function () {
+	const mockFile = `${this.currentTest?.title?.replace(/ /g, '-').toLowerCase()}.json`;
+	if (process.env.UPDATE_MOCKS === 'true') {
+		await fs.writeFile(
+			path.resolve(__dirname, 'mocks', mockFile),
+			JSON.stringify(nock.recorder.play(), null, 2),
+		);
+	}
+	nock.cleanAll();
+});
 
-	afterEach(() => {
-		nock.cleanAll();
-	});
+after(function () {
+	nock.enableNetConnect();
+});
 
-	it('Creates a release bundle using the release ID', async () => {
+describe('Basic create release usage', function () {
+	it('Should create a release bundle using the release ID', async function () {
 		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
-		const mockFile = 'create-from-existing-release.json';
-		if (process.env.UPDATE_MOCKS === 'true') {
-			console.log('Recording...');
-			nock.recorder.rec({
-				dont_print: true,
-				output_objects: true,
-			});
-		} else {
-			await mockResponses(mockFile);
-		}
+		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
+		const nocksDefinitionsFile = await fs.readFile(
+			path.resolve(__dirname, 'mocks', mockFile),
+			'utf8',
+		);
+		const expectedManifest = JSON.parse(nocksDefinitionsFile)[0].response
+			.d[0] as SDK.Release;
+		const releaseId = process.env.RELEASE_ID
+			? Number(process.env.RELEASE_ID)
+			: expectedManifest.id;
 		const sdk = SDK.getSdk();
 		const releaseBundle = await bundle.create({
 			sdk,
-			releaseId: 3023927,
+			releaseId,
 		});
 		if (process.env.UPDATE_MOCKS === 'true') {
-			console.log('Updating mocks.');
-			await fs.writeFile(
-				path.resolve(__dirname, 'mocks', mockFile),
-				JSON.stringify(nock.recorder.play(), null, 2),
-			);
 			await pipeline(
 				releaseBundle,
 				createWriteStream('test/fixtures/release-bundle.tar'),
@@ -76,37 +88,18 @@ describe('Basic create release usage', () => {
 				releaseBundle,
 				'io.balena.release',
 			);
-			const expectedManifestFile = await fs.readFile(
-				'./test/mocks/create-from-existing-release.json',
-				'utf8',
-			);
-			const expectedManifest =
-				JSON.parse(expectedManifestFile)[0].response.d[0];
 			expect(readableBundle.manifest).to.deep.equal(expectedManifest);
 		}
 	});
 
-	it('Should fail to create a release bundle using a non-existing release ID', async () => {
+	it('Should fail to create a release bundle using a non-existing release ID', async function () {
 		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
-		const mockFile = 'create-from-nonexisting-release.json';
-		if (process.env.UPDATE_MOCKS === 'true') {
-			nock.recorder.rec({
-				dont_print: true,
-				output_objects: true,
-			});
-		} else {
-			await mockResponses(mockFile);
-		}
 		const sdk = SDK.getSdk();
 		if (process.env.UPDATE_MOCKS === 'true') {
 			await bundle.create({
 				sdk,
 				releaseId: 3023927,
 			});
-			await fs.writeFile(
-				path.resolve(__dirname, 'mocks', mockFile),
-				JSON.stringify(nock.recorder.play(), null, 2),
-			);
 		} else {
 			await expect(
 				bundle.create({
@@ -118,69 +111,47 @@ describe('Basic create release usage', () => {
 	});
 });
 
-describe('Basic apply release usage', () => {
-	before(() => {
-		nock.disableNetConnect();
-	});
-
-	after(() => {
-		nock.enableNetConnect();
-	});
-
-	afterEach(() => {
-		nock.cleanAll();
-	});
-
-	it('Applies the release bundle to a fleet', async () => {
-		const mockFile = 'apply-release-bundle-to-fleet.json';
-		if (process.env.UPDATE_MOCKS === 'true') {
-			nock.recorder.rec({
-				dont_print: true,
-				output_objects: true,
-			});
-		}
+describe('Basic apply release usage', function () {
+	it('Should apply the release bundle to a fleet', async function () {
+		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
+		const nocksDefinitionsFile = await fs.readFile(
+			path.resolve(__dirname, 'mocks', mockFile),
+			'utf8',
+		);
+		const expectedApplication = JSON.parse(nocksDefinitionsFile)[0].response
+			.d[0] as SDK.Application;
 		const sdk = SDK.getSdk();
-		await mockResponses(mockFile);
 		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
 		await bundle.apply({
 			sdk,
-			application: 2136996,
+			application: process.env.APPLICATION_ID
+				? Number(process.env.APPLICATION_ID)
+				: expectedApplication.id,
 			stream: bundleStream,
 		});
-		if (process.env.UPDATE_MOCKS === 'true') {
-			await fs.writeFile(
-				path.resolve(__dirname, 'mocks', mockFile),
-				JSON.stringify(nock.recorder.play(), null, 2),
-			);
-		}
 	});
 
-	it('Should fail in applying the release bundle to a fleet with existing successful release', async () => {
-		const mockFile = 'apply-release-bundle-to-fleet-with-existing.json';
-		if (process.env.UPDATE_MOCKS === 'true') {
-			nock.recorder.rec({
-				dont_print: true,
-				output_objects: true,
-			});
-		}
+	it('Should fail in applying the release bundle to a fleet with existing successful release', async function () {
+		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
+		const nocksDefinitionsFile = await fs.readFile(
+			path.resolve(__dirname, 'mocks', mockFile),
+			'utf8',
+		);
+		const expectedApplication = JSON.parse(nocksDefinitionsFile)[0].response
+			.d[0] as SDK.Release;
 		const sdk = SDK.getSdk();
-		await mockResponses(mockFile);
 		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
 		await expect(
 			bundle.apply({
 				sdk,
-				application: 2136996,
+				application: process.env.APPLICATION_ID
+					? Number(process.env.APPLICATION_ID)
+					: expectedApplication.id,
 				stream: bundleStream,
 			}),
 		).to.be.rejectedWith(
 			Error,
 			'A successful release with the version 16.3.11 already exists and duplicates are not allowed.',
 		);
-		if (process.env.UPDATE_MOCKS === 'true') {
-			await fs.writeFile(
-				path.resolve(__dirname, 'mocks', mockFile),
-				JSON.stringify(nock.recorder.play(), null, 2),
-			);
-		}
 	});
 });
