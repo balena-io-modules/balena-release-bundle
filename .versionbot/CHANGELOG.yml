@@ -1,4 +1,30 @@
 - commits:
+    - subject: Moves nock setup to a function that runs before each test.
+      hash: 45fb931ba9a5d0dc45f673e8933d1cfe59a7aac7
+      body: >
+        This change de-duplicates the logic for setting up the nocks for each
+
+        test.  The mock definition files are now referenced based on the title
+        of
+
+        the test. This change makes it easier to add more tests or update
+
+        existing ones in the future.
+
+
+        This change also makes the tests reference use the nock definitions as
+
+        reference for the application and release IDs.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.2.1
+  title: ""
+  date: 2024-06-24T09:25:33.256Z
+- commits:
     - subject: Sets the Balena SDK as a peer dependency.
       hash: 14d19d24d3587ea9fcb89b0e5c28f591225f381c
       body: |
