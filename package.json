@@ -1,7 +1,7 @@
 {
   "name": "@balena/release-bundle",
   "version": "0.2.1",
-  "private": true,
+  "private": false,
   "description": "Balena Release Bundle SDK",
   "main": "dist/index.js",
   "directories": {
