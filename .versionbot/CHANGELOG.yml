@@ -1,4 +1,17 @@
 - commits:
+    - subject: Publish declaration file and specify included files.
+      hash: 0b3e61720765041daed15a28c6b9a796356013a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.2.3
+  title: ""
+  date: 2024-07-01T11:22:38.734Z
+- commits:
     - subject: Makes the module publicly accessible.
       hash: 80216e5d82cc919ce5571f48fcff33d3bf254ef3
       body: |
