@@ -1,4 +1,18 @@
 - commits:
+    - subject: Makes the module publicly accessible.
+      hash: 80216e5d82cc919ce5571f48fcff33d3bf254ef3
+      body: |
+        Also updates the examples in the README to use module name.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.2.2
+  title: ""
+  date: 2024-07-01T06:57:35.074Z
+- commits:
     - subject: Moves nock setup to a function that runs before each test.
       hash: 45fb931ba9a5d0dc45f673e8933d1cfe59a7aac7
       body: >
