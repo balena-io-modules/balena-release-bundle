@@ -4,7 +4,7 @@ A *Release Bundle* is a resource bundle that contains application release metada
 
 ## Installing
 
-```
+```shell
 npm install --save @balena/release-bundle
 ```
 
@@ -12,23 +12,20 @@ npm install --save @balena/release-bundle
 
 ### Creating a Release Bundle from a Fleet Release
 
-```
-import * as fs from 'fs/promises';
-import * as bundle from './src';
-import * as SDK from 'balena-sdk';
+```typescript
+import { writeFile } from 'fs/promises';
+import { create } from '@balena/release-bundle';
+import { getSdk } from 'balena-sdk';
 
 
 async function run() {
-    const sdk = SDK.getSdk();
-    const apiUrl = await sdk.settings.get('apiUrl');
-    const authToken = await sdk.auth.getToken();
+    const sdk = getSdk();
 
     const releaseBundle = await bundle.create({
-        apiUrl,
-        authToken,
+        sdk,
         releaseId: 3023927,
     });
-    await fs.writeFile('./release-bundle.tar', releaseBundle);
+    await writeFile('./release-bundle.tar', releaseBundle);
 
 }
 
@@ -38,29 +35,22 @@ run();
 
 ### Applying a Release Bundle to a Fleet
 
-```
-import * as fs from 'fs/promises';
-import * as bundle from './src';
-import * as SDK from 'balena-sdk';
+```typescript
+import { createReadStream } from 'fs';
+import { apply } from '@balena/release-bundle';
+import { getSdk } from 'balena-sdk';
 
 async function run() {
-    const sdk = SDK.getSdk();
-    const apiUrl = await sdk.settings.get('apiUrl');
-    const authToken = await sdk.auth.getToken();
+    const sdk = getSdk();
 
-    const bundleBuffer = await fs.readFile(
+    const bundle = await createReadStream(
         './release-bundle.tar',
     );
-    const bundleStream = new stream.Readable();
-    bundleStream.push(bundleBuffer);
-    bundleStream.push(null);
 
-    await bundle.apply({
-        apiUrl,
-        authToken,
+    await apply({
+        sdk,
         application: 2136996,
-        stream: bundleStream,
-        force: true,
+        stream: bundle,
     });
 
 }
