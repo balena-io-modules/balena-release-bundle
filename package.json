@@ -1,12 +1,14 @@
 {
   "name": "@balena/release-bundle",
   "version": "0.2.2",
-  "private": false,
   "description": "Balena Release Bundle SDK",
   "main": "dist/index.js",
-  "directories": {
-    "test": "test"
-  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "scripts": {
     "clean": "rimraf dist",
     "lint": "balena-lint --project ./tsconfig.test.json src/ test/ && tsc --noEmit",
