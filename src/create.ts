@@ -19,16 +19,35 @@ import * as resourceBundle from '@balena/resource-bundle';
 import type { Readable } from 'stream';
 import type * as SDK from 'balena-sdk';
 
-// TODO: change parameters to accept the SDK instance instead
 interface CreateOptions {
 	sdk: SDK.BalenaSDK;
 	releaseId: number;
+	apiToken?: string;
+}
+
+export function $validateRelease(
+	release: SDK.Release | undefined,
+): SDK.Release {
+	if (release == null) {
+		throw new Error('Release not found.');
+	}
+
+	if (release.status !== 'success') {
+		throw new Error(
+			'Could not create bundle from release; release bundles can only be created from successful releases.',
+		);
+	}
+	if (release.release_image == null) {
+		throw new Error(
+			'Release bundles can only be created from releases with successfully built images.',
+		);
+	}
+
+	return release;
 }
 
 export async function create(options: CreateOptions): Promise<Readable> {
-	// TODO: pass the SDK instead
 	const { sdk, releaseId } = options;
-
 	const remoteRelease = await sdk.pine.get<SDK.Release>({
 		resource: 'release',
 		id: releaseId,
@@ -59,23 +78,55 @@ export async function create(options: CreateOptions): Promise<Readable> {
 			},
 		},
 	});
+	const release = $validateRelease(remoteRelease);
 
-	if (!remoteRelease) {
-		throw new Error('Release not found.');
+	const imageDescriptors = getImageDescriptors(release);
+	const authinfo =
+		await resourceBundle.docker.discoverAuthenticate(imageDescriptors);
+
+	let token: string | undefined;
+	if (authinfo != null) {
+		const [authentication, scopes] = authinfo;
+		const username = (await sdk.auth.getUserInfo()).username;
+		// TODO: Authenticate using session token once resource bundle provides option
+		if (options.apiToken) {
+			token = await resourceBundle.docker.authenticate(authentication, scopes, {
+				username,
+				password: options.apiToken,
+			});
+		}
 	}
+	const { blobs } = await resourceBundle.docker.fetchImages(
+		imageDescriptors,
+		token,
+	);
 
-	if (remoteRelease.status !== 'success') {
-		throw new Error(
-			'Could not create bundle from release; release bundles can only be created from successful releases.',
-		);
-	}
+	return await $create(release, blobs);
+}
 
+function getImageDescriptors(
+	release: SDK.Release,
+): resourceBundle.docker.ImageDescriptor[] {
+	return release.release_image!.map((releaseImage) => {
+		if (!Array.isArray(releaseImage.image)) {
+			throw new Error(
+				'Release bundles can only be created from releases with successfully built images.',
+			);
+		}
+		const [image] = releaseImage.image;
+		const imageName = `${image.is_stored_at__image_location}@${image.content_hash}`;
+		return resourceBundle.docker.parseImageName(imageName);
+	});
+}
+
+async function $create(release: SDK.Release, blobs: resourceBundle.Resource[]) {
 	const bundle = new resourceBundle.WritableBundle<SDK.Release>({
 		type: 'io.balena.release',
-		manifest: remoteRelease,
+		manifest: release,
 	});
-
-	// TODO: Download the images of the release and include into the bundle
+	for (const blob of blobs) {
+		bundle.addResource(blob);
+	}
 
 	return bundle.finalize();
 }

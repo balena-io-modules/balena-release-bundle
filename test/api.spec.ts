@@ -15,143 +15,222 @@
  * limitations under the License.
  */
 
-import * as bundle from '../src';
+import { readFile } from 'fs/promises';
+import * as path from 'path';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { describe } from 'mocha';
-import { createReadStream, createWriteStream } from 'fs';
-import { pipeline } from 'stream/promises';
-import * as fs from 'fs/promises';
-import * as nock from 'nock';
-import * as resourceBundle from '@balena/resource-bundle';
-import mockResponses from './mocks';
-import * as path from 'path';
-import * as SDK from 'balena-sdk';
+import type * as SDK from 'balena-sdk';
+import * as bundle from '../src';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-before(function () {
-	nock.disableNetConnect();
-});
 
-beforeEach(async function () {
-	const mockFile = `${this.currentTest?.title?.replace(/ /g, '-').toLowerCase()}.json`;
-	if (process.env.UPDATE_MOCKS === 'true') {
-		nock.recorder.rec({
-			dont_print: true,
-			output_objects: true,
-		});
-	}
-	await mockResponses(mockFile);
-});
+describe('Basic create function usage', async function () {
+	let releaseData: string;
+	before(async function () {
+		const releaseFile = path.resolve(__dirname, 'fixtures', 'release.json');
+		releaseData = await readFile(releaseFile, 'utf8');
+	});
 
-afterEach(async function () {
-	const mockFile = `${this.currentTest?.title?.replace(/ /g, '-').toLowerCase()}.json`;
-	if (process.env.UPDATE_MOCKS === 'true') {
-		await fs.writeFile(
-			path.resolve(__dirname, 'mocks', mockFile),
-			JSON.stringify(nock.recorder.play(), null, 2),
-		);
-	}
-	nock.cleanAll();
-});
+	it('should allow creation of bundles from successful releases', function () {
+		const release = JSON.parse(releaseData);
+		const validatedRelease = bundle.$validateRelease(release);
+		expect(validatedRelease).to.equal(release);
+	});
 
-after(function () {
-	nock.enableNetConnect();
-});
-
-describe('Basic create release usage', function () {
-	it('Should create a release bundle using the release ID', async function () {
-		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
-		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
-		const nocksDefinitionsFile = await fs.readFile(
-			path.resolve(__dirname, 'mocks', mockFile),
-			'utf8',
-		);
-		const expectedManifest = JSON.parse(nocksDefinitionsFile)[0].response
-			.d[0] as SDK.Release;
-		const releaseId = process.env.RELEASE_ID
-			? Number(process.env.RELEASE_ID)
-			: expectedManifest.id;
-		const sdk = SDK.getSdk();
-		const releaseBundle = await bundle.create({
-			sdk,
-			releaseId,
-		});
-		if (process.env.UPDATE_MOCKS === 'true') {
-			await pipeline(
-				releaseBundle,
-				createWriteStream('test/fixtures/release-bundle.tar'),
+	it('should throw an error if no release was found', function () {
+		try {
+			bundle.$validateRelease(undefined);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
 			);
-		} else {
-			const readableBundle = await resourceBundle.read<SDK.Release>(
-				releaseBundle,
-				'io.balena.release',
-			);
-			expect(readableBundle.manifest).to.deep.equal(expectedManifest);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal('Release not found.');
 		}
 	});
 
-	it('Should fail to create a release bundle using a non-existing release ID', async function () {
-		// amd64-supervisor https://dashboard.balena-cloud.com/apps/1667442/releases/3023927
-		const sdk = SDK.getSdk();
-		if (process.env.UPDATE_MOCKS === 'true') {
-			await bundle.create({
-				sdk,
-				releaseId: 3023927,
-			});
-		} else {
-			await expect(
-				bundle.create({
-					sdk,
-					releaseId: 3023927,
-				}),
-			).to.be.rejectedWith(Error, 'Release not found.');
+	it('should throw an error if the release does not have a status equal to "success"', function () {
+		try {
+			const release = JSON.parse(releaseData) as SDK.Release;
+			release.status = 'failed';
+			bundle.$validateRelease(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				'Could not create bundle from release; release bundles can only be created from successful releases.',
+			);
+		}
+	});
+
+	it('should throw an error if the release does not include any images', function () {
+		try {
+			const release = JSON.parse(releaseData) as SDK.Release;
+			release.release_image = undefined;
+			bundle.$validateRelease(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				'Release bundles can only be created from releases with successfully built images.',
+			);
 		}
 	});
 });
 
-describe('Basic apply release usage', function () {
-	it('Should apply the release bundle to a fleet', async function () {
-		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
-		const nocksDefinitionsFile = await fs.readFile(
-			path.resolve(__dirname, 'mocks', mockFile),
-			'utf8',
-		);
-		const expectedApplication = JSON.parse(nocksDefinitionsFile)[0].response
-			.d[0] as SDK.Application;
-		const sdk = SDK.getSdk();
-		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
-		await bundle.apply({
-			sdk,
-			application: process.env.APPLICATION_ID
-				? Number(process.env.APPLICATION_ID)
-				: expectedApplication.id,
-			stream: bundleStream,
-		});
+describe('Basic apply release usage', async function () {
+	let releaseData: string;
+	before(async function () {
+		const releaseFile = path.resolve(__dirname, 'fixtures', 'release.json');
+		releaseData = await readFile(releaseFile, 'utf8');
 	});
 
-	it('Should fail in applying the release bundle to a fleet with existing successful release', async function () {
-		const mockFile = `${this.test?.title.replace(/ /g, '-').toLowerCase()}.json`;
-		const nocksDefinitionsFile = await fs.readFile(
-			path.resolve(__dirname, 'mocks', mockFile),
-			'utf8',
-		);
-		const expectedApplication = JSON.parse(nocksDefinitionsFile)[0].response
-			.d[0] as SDK.Release;
-		const sdk = SDK.getSdk();
-		const bundleStream = createReadStream('./test/fixtures/release-bundle.tar');
-		await expect(
-			bundle.apply({
-				sdk,
-				application: process.env.APPLICATION_ID
-					? Number(process.env.APPLICATION_ID)
-					: expectedApplication.id,
-				stream: bundleStream,
-			}),
-		).to.be.rejectedWith(
-			Error,
-			'A successful release with the version 16.3.11 already exists and duplicates are not allowed.',
-		);
+	it('Should be able to read the manifest and normalize it', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		const normalizedManifest = bundle.$normalizeManifest(release);
+		expect(normalizedManifest.semver_major).to.equal(release.semver_major);
+		expect(normalizedManifest.semver_minor).to.equal(release.semver_minor);
+		expect(normalizedManifest.semver_patch).to.equal(release.semver_patch);
+		expect(normalizedManifest.releaseImages).to.be.an('array');
+		expect(normalizedManifest.releaseTags).to.be.an('array');
+	});
+
+	it('should throw an error if the release does not have a status equal to "success"', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		release.status = 'failed';
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected release to have status 'success' but found '${release.status}'`,
+			);
+		}
+	});
+
+	it('should throw an error if the major, minor, or patch version of the manifest is not a number', function () {
+		let release = JSON.parse(releaseData) as SDK.Release;
+		release.semver_major = 'test' as any;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected release to have semver_major that is a number but found ${typeof release.semver_major}`,
+			);
+		}
+
+		release = JSON.parse(releaseData) as SDK.Release;
+		release.semver_minor = 'test' as any;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected release to have semver_minor that is a number but found ${typeof release.semver_minor}`,
+			);
+		}
+
+		release = JSON.parse(releaseData) as SDK.Release;
+		release.semver_patch = 'test' as any;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected release to have semver_patch that is a number but found ${typeof release.semver_patch}`,
+			);
+		}
+	});
+
+	it('should throw an error if the release does not include any images', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		release.release_image = undefined;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected array of release images but found ${typeof release.release_image}`,
+			);
+		}
+	});
+
+	it('should throw an error if an image in the release does not have a status of "success"', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		if (!Array.isArray(release.release_image)) {
+			throw new Error('Release manifest fixture is malformed.');
+		}
+		release.release_image[0].image[0].status = 'failed';
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected release image to have status 'success' but found ${release.release_image[0].image[0].status}`,
+			);
+		}
+	});
+
+	it('should throw an error if an image in the release does not have a content hash string', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		if (!Array.isArray(release.release_image)) {
+			throw new Error('Release manifest fixture is malformed.');
+		}
+		release.release_image[0].image[0].content_hash = false as any;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected content hash for release image to be a string but found ${release.release_image[0].image[0].content_hash}`,
+			);
+		}
+	});
+
+	it('should throw an error if an image in the release does not include service information', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		if (!Array.isArray(release.release_image)) {
+			throw new Error('Release manifest fixture is malformed.');
+		}
+		release.release_image[0].image[0].is_a_build_of__service = null as any;
+		try {
+			bundle.$normalizeManifest(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				`Expected array of services in release image but found ${typeof release.release_image[0].image[0].is_a_build_of__service}`,
+			);
+		}
 	});
 });

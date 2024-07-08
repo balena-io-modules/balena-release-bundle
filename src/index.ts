@@ -15,5 +15,5 @@
  * limitations under the License.
  */
 
-export { create } from './create';
-export { apply } from './apply';
+export { create, $validateRelease } from './create';
+export { apply, $normalizeManifest } from './apply';
