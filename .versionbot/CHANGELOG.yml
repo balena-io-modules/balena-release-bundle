@@ -1,4 +1,29 @@
 - commits:
+    - subject: Includes the image blobs into the release bundles.
+      hash: 78239ea80a756fb89b8a6fb4c8ee91810e676137
+      body: >
+        Note that an API token is currently required for creating release
+
+        bundles since it is used to authorize pulls from the registry.
+
+
+        This commit also moves release manifest validation to separate functions
+        for unit testing.
+
+
+        This commit also removes the API call mocks and focuses the unit tests
+
+        on release manifest validation.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.3.0
+  title: ""
+  date: 2024-07-09T07:55:08.898Z
+- commits:
     - subject: Publish declaration file and specify included files.
       hash: 0b3e61720765041daed15a28c6b9a796356013a8
       body: ""
