@@ -22,7 +22,6 @@ import type * as SDK from 'balena-sdk';
 interface CreateOptions {
 	sdk: SDK.BalenaSDK;
 	releaseId: number;
-	apiToken?: string;
 }
 
 export function $validateRelease(
@@ -84,21 +83,24 @@ export async function create(options: CreateOptions): Promise<Readable> {
 	const authinfo =
 		await resourceBundle.docker.discoverAuthenticate(imageDescriptors);
 
-	let token: string | undefined;
+	let registryToken: string | undefined;
 	if (authinfo != null) {
 		const [authentication, scopes] = authinfo;
-		const username = (await sdk.auth.getUserInfo()).username;
-		// TODO: Authenticate using session token once resource bundle provides option
-		if (options.apiToken) {
-			token = await resourceBundle.docker.authenticate(authentication, scopes, {
-				username,
-				password: options.apiToken,
-			});
-		}
+		const subject = (await sdk.auth.getUserInfo()).username;
+		const token = await sdk.auth.getToken();
+		registryToken = await resourceBundle.docker.authenticate(
+			authentication,
+			scopes,
+			{
+				type: 'Bearer',
+				subject,
+				token,
+			},
+		);
 	}
 	const { blobs } = await resourceBundle.docker.fetchImages(
 		imageDescriptors,
-		token,
+		registryToken,
 	);
 
 	return await $create(release, blobs);
