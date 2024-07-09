@@ -1,13 +1,4 @@
-[
-  {
-    "scope": "https://api.balena-cloud.com:443",
-    "method": "GET",
-    "path": "/v6/release(3023927)?$expand=release_tag($select=tag_key,value),release_image($select=created_at,image;$expand=image($select=created_at,content_hash,end_timestamp,is_a_build_of__service,is_stored_at__image_location,push_timestamp,status;$expand=is_a_build_of__service($select=id,service_name)))",
-    "body": "",
-    "status": 200,
-    "response": {
-  "d": [
-    {
+{
       "release_tag": [
         {
           "tag_key": "balena-ci-commit-sha",
@@ -93,47 +84,3 @@
       "variant": "",
       "release_type": "final"
     }
-  ]
-}
-,
-    "rawHeaders": [
-      "Date",
-      "Wed, 19 Jun 2024 11:06:23 GMT",
-      "Content-Type",
-      "application/json; charset=utf-8",
-      "Transfer-Encoding",
-      "chunked",
-      "Connection",
-      "keep-alive",
-      "x-frame-options",
-      "DENY",
-      "x-content-type-options",
-      "nosniff",
-      "access-control-allow-origin",
-      "*",
-      "access-control-allow-credentials",
-      "true",
-      "access-control-expose-headers",
-      "Retry-After",
-      "Cache-Control",
-      "no-cache",
-      "etag",
-      "W/\"c78-7/7fj5NqVj3NrJQWJdUculeGdSA\"",
-      "vary",
-      "Accept-Encoding",
-      "CF-Cache-Status",
-      "DYNAMIC",
-      "Strict-Transport-Security",
-      "max-age=15552000",
-      "Server",
-      "cloudflare",
-      "CF-RAY",
-      "89630ca67d9584b7-HKG",
-      "Content-Encoding",
-      "gzip",
-      "alt-svc",
-      "h3=\":443\"; ma=86400"
-    ],
-    "responseIsBinary": false
-  }
-]

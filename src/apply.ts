@@ -25,7 +25,7 @@ interface ApplyOptions {
 	stream: stream.Readable;
 }
 
-interface Release {
+export interface Release {
 	semver_major: number;
 	semver_minor: number;
 	semver_patch: number;
@@ -37,7 +37,7 @@ interface Release {
 	releaseTags: Array<Pick<SDK.ReleaseTag, 'tag_key' | 'value'>>;
 }
 
-function normalizeManifest(manifest: SDK.Release): Release {
+export function $normalizeManifest(manifest: SDK.Release): Release {
 	const release: Release = {
 		semver_major: manifest.semver_major,
 		semver_minor: manifest.semver_minor,
@@ -49,7 +49,7 @@ function normalizeManifest(manifest: SDK.Release): Release {
 
 	if (release.status !== 'success') {
 		throw new Error(
-			`Expected release to have status 'success' but found ${manifest.status}`,
+			`Expected release to have status 'success' but found '${manifest.status}'`,
 		);
 	}
 	if (typeof release.semver_major !== 'number') {
@@ -88,12 +88,12 @@ function normalizeManifest(manifest: SDK.Release): Release {
 		}
 		if (typeof image.content_hash !== 'string') {
 			throw new Error(
-				`Expected content hash for release image ${releaseImage.id} to be a string but found ${image.content_hash}`,
+				`Expected content hash for release image to be a string but found ${image.content_hash}`,
 			);
 		}
 		if (!Array.isArray(image.is_a_build_of__service)) {
 			throw new Error(
-				`Expected array of services in release image ${releaseImage.id} but found ${typeof image.is_a_build_of__service}`,
+				`Expected array of services in release image but found ${typeof image.is_a_build_of__service}`,
 			);
 		}
 		const [service] = image.is_a_build_of__service;
@@ -142,7 +142,7 @@ export async function apply(options: ApplyOptions): Promise<number> {
 
 	let release: Release;
 	try {
-		release = normalizeManifest(bundle.manifest);
+		release = $normalizeManifest(bundle.manifest);
 	} catch (error) {
 		throw new Error(`Manifest is malformed: ${error.message}`);
 	}
