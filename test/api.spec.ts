@@ -91,12 +91,23 @@ describe('Basic apply release usage', async function () {
 		releaseData = await readFile(releaseFile, 'utf8');
 	});
 
-	it('Should be able to read the manifest and normalize it', function () {
+	it('Should be able to normalize the manifest', function () {
 		const release = JSON.parse(releaseData) as SDK.Release;
 		const normalizedManifest = bundle.$normalizeManifest(release);
 		expect(normalizedManifest.semver_major).to.equal(release.semver_major);
 		expect(normalizedManifest.semver_minor).to.equal(release.semver_minor);
 		expect(normalizedManifest.semver_patch).to.equal(release.semver_patch);
+		expect(normalizedManifest.releaseImages).to.be.an('array');
+		expect(normalizedManifest.releaseTags).to.be.an('array');
+	});
+
+	it('Should normalize a manifest with an overriding version', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		const normalizedManifest = bundle.$normalizeManifest(release, '1.2.3');
+		expect(normalizedManifest.semver).to.equal('1.2.3');
+		expect(normalizedManifest.semver_major).to.equal(1);
+		expect(normalizedManifest.semver_minor).to.equal(2);
+		expect(normalizedManifest.semver_patch).to.equal(3);
 		expect(normalizedManifest.releaseImages).to.be.an('array');
 		expect(normalizedManifest.releaseTags).to.be.an('array');
 	});

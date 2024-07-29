@@ -21,7 +21,7 @@ import { getSdk } from 'balena-sdk';
 async function run() {
     const sdk = getSdk();
 
-    const releaseBundle = await bundle.create({
+    const releaseBundle = await create({
         sdk,
         releaseId: 3023927,
     });
