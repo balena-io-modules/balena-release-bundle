@@ -33,7 +33,8 @@
   },
   "homepage": "https://github.com/balena-io-modules/balena-release-bundle#readme",
   "dependencies": {
-    "@balena/resource-bundle": "^0.4.1"
+    "@balena/resource-bundle": "^0.4.1",
+    "balena-semver": "^2.3.5"
   },
   "peerDependencies": {
     "balena-sdk": "^19.0.0"
