@@ -67,6 +67,22 @@ describe('Basic create function usage', async function () {
 		}
 	});
 
+	it('should throw an error if the release is an invalidated release', function () {
+		try {
+			const release = JSON.parse(releaseData) as SDK.Release;
+			release.is_invalidated = true;
+			bundle.$validateRelease(release);
+			throw new Error(
+				'Expected function to throw an error, but none was thrown',
+			);
+		} catch (err) {
+			expect(err).to.be.an.instanceof(Error);
+			expect(err.message).to.equal(
+				'Could not create bundle from release; release bundles can only be created from valid releases.',
+			);
+		}
+	});
+
 	it('should throw an error if the release does not include any images', function () {
 		try {
 			const release = JSON.parse(releaseData) as SDK.Release;
@@ -91,12 +107,18 @@ describe('Basic apply release usage', async function () {
 		releaseData = await readFile(releaseFile, 'utf8');
 	});
 
-	it('Should be able to read the manifest and normalize it', function () {
+	it('Should be able to normalize the manifest', function () {
 		const release = JSON.parse(releaseData) as SDK.Release;
 		const normalizedManifest = bundle.$normalizeManifest(release);
-		expect(normalizedManifest.semver_major).to.equal(release.semver_major);
-		expect(normalizedManifest.semver_minor).to.equal(release.semver_minor);
-		expect(normalizedManifest.semver_patch).to.equal(release.semver_patch);
+		expect(normalizedManifest.semver).to.equal(release.semver);
+		expect(normalizedManifest.releaseImages).to.be.an('array');
+		expect(normalizedManifest.releaseTags).to.be.an('array');
+	});
+
+	it('Should normalize a manifest with an overriding version', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		const normalizedManifest = bundle.$normalizeManifest(release, '1.2.3');
+		expect(normalizedManifest.semver).to.equal('1.2.3');
 		expect(normalizedManifest.releaseImages).to.be.an('array');
 		expect(normalizedManifest.releaseTags).to.be.an('array');
 	});
@@ -117,9 +139,9 @@ describe('Basic apply release usage', async function () {
 		}
 	});
 
-	it('should throw an error if the major, minor, or patch version of the manifest is not a number', function () {
-		let release = JSON.parse(releaseData) as SDK.Release;
-		release.semver_major = 'test' as any;
+	it('should throw an error if the semver of the manifest is not a valid semantic version', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
+		release.semver = 'test' as any;
 		try {
 			bundle.$normalizeManifest(release);
 			throw new Error(
@@ -128,35 +150,22 @@ describe('Basic apply release usage', async function () {
 		} catch (err) {
 			expect(err).to.be.an.instanceof(Error);
 			expect(err.message).to.equal(
-				`Expected release to have semver_major that is a number but found ${typeof release.semver_major}`,
+				`Expected release to have semver to be a valid semantic version but found '${release.semver}'`,
 			);
 		}
+	});
 
-		release = JSON.parse(releaseData) as SDK.Release;
-		release.semver_minor = 'test' as any;
+	it('should throw an error if the overriding version is not a valid semantic version', function () {
+		const release = JSON.parse(releaseData) as SDK.Release;
 		try {
-			bundle.$normalizeManifest(release);
+			bundle.$normalizeManifest(release, 'test');
 			throw new Error(
 				'Expected function to throw an error, but none was thrown',
 			);
 		} catch (err) {
 			expect(err).to.be.an.instanceof(Error);
 			expect(err.message).to.equal(
-				`Expected release to have semver_minor that is a number but found ${typeof release.semver_minor}`,
-			);
-		}
-
-		release = JSON.parse(releaseData) as SDK.Release;
-		release.semver_patch = 'test' as any;
-		try {
-			bundle.$normalizeManifest(release);
-			throw new Error(
-				'Expected function to throw an error, but none was thrown',
-			);
-		} catch (err) {
-			expect(err).to.be.an.instanceof(Error);
-			expect(err.message).to.equal(
-				`Expected release to have semver_patch that is a number but found ${typeof release.semver_patch}`,
+				`Expected version to be a valid semantic version but found 'test'`,
 			);
 		}
 	});
