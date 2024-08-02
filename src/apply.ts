@@ -57,7 +57,6 @@ export function $normalizeManifest(
 				`Expected version to be a valid semantic version but found '${version}'`,
 			);
 		}
-		// TODO: handle invalid semver input, if versionOverride is null
 	}
 
 	if (release.status !== 'success') {
@@ -110,7 +109,6 @@ export function $normalizeManifest(
 			service: service.service_name,
 		});
 	}
-	// TODO: Validate release tags
 	if (!Array.isArray(manifest.release_tag)) {
 		throw new Error(
 			`Expected array of release tags but found ${typeof manifest.release_tag}`,
@@ -138,7 +136,6 @@ export function $normalizeManifest(
 
 export async function apply(options: ApplyOptions): Promise<number> {
 	const { sdk } = options;
-	// FIXME: clone release timestamps when the API already allows it
 	const currentDateIso = new Date(Date.now()).toISOString();
 
 	const bundle = await resourceBundle.read<SDK.Release>(
@@ -229,7 +226,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 				content_hash: releaseImage.image.content_hash,
 				is_a_build_of__service: localService.id,
 				status: 'running',
-				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 				start_timestamp: currentDateIso,
 				push_timestamp: currentDateIso,
 			},
@@ -251,7 +247,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 			id: localImage.id,
 			body: {
 				status: releaseImage.image.status,
-				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 				end_timestamp: currentDateIso,
 			},
 		});
@@ -262,7 +257,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		id: localRelease.id,
 		body: {
 			status: release.status,
-			// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 			end_timestamp: currentDateIso,
 			update_timestamp: currentDateIso,
 		},
