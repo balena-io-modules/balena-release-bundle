@@ -1,4 +1,21 @@
 - commits:
+    - subject: Remove in-module constraint that checks for same commit/semver.
+      hash: 514c52b801315771c2a706b5ab7b41294c96688d
+      body: |
+        This is technical debt that we will need to maintain in case we change
+        constraints in the balena API.  By removing this check, we rely
+        only on the constraints enforced by the API and avoid having to maintain
+        rules in different components.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.4.1
+  title: ""
+  date: 2024-08-13T06:10:26.121Z
+- commits:
     - subject: Use bearer auth for pulling images from registry
       hash: 277c975c6379536f1339fbc96d498abbad02cdf3
       body: ""
