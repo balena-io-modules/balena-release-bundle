@@ -153,27 +153,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		$select: ['id'],
 	});
 
-	const [existingRelease] = await sdk.pine.get<SDK.Release>({
-		resource: 'release',
-		options: {
-			$select: ['id', 'version'],
-			$filter: {
-				belongs_to__application: application.id,
-				semver_major: bundle.manifest.semver_major,
-				semver_minor: bundle.manifest.semver_minor,
-				semver_patch: bundle.manifest.semver_patch,
-				status: 'success',
-			},
-			$top: 1,
-		},
-	});
-
-	if (existingRelease != null) {
-		throw new Error(
-			`A successful release with the version ${existingRelease.version.version} already exists and duplicates are not allowed.`,
-		);
-	}
-
 	const localRelease = await sdk.pine.post<SDK.Release>({
 		resource: 'release',
 		body: {
