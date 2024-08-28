@@ -1,4 +1,37 @@
 - commits:
+    - subject: Update tests.
+      hash: 74d8be8776f8278e7f934cfd19076cf0679926f0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+    - subject: Release bundles should not be created from invalidated releases.
+      hash: 77c8cbc98036df27c3cf0ffb9eab34831f7bbb4e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+    - subject: Add an option to override the release version.
+      hash: 73c5497916bb2e4d2d896218635467ffaa2a139a
+      body: |
+        This allows the user to set the version number of the release when
+        applying a release bundle.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.5.0
+  title: ""
+  date: 2024-08-28T08:11:38.181Z
+- commits:
     - subject: Remove in-module constraint that checks for same commit/semver.
       hash: 514c52b801315771c2a706b5ab7b41294c96688d
       body: |
