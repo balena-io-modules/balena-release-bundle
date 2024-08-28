@@ -36,6 +36,11 @@ export function $validateRelease(
 			'Could not create bundle from release; release bundles can only be created from successful releases.',
 		);
 	}
+	if (release.is_invalidated === true) {
+		throw new Error(
+			'Could not create bundle from release; release bundles can only be created from valid releases.',
+		);
+	}
 	if (release.release_image == null) {
 		throw new Error(
 			'Release bundles can only be created from releases with successfully built images.',

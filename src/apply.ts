@@ -17,18 +17,18 @@
 
 import type * as stream from 'stream';
 import * as resourceBundle from '@balena/resource-bundle';
+import * as semver from 'balena-semver';
 import type * as SDK from 'balena-sdk';
 
 interface ApplyOptions {
 	application: number;
 	sdk: SDK.BalenaSDK;
 	stream: stream.Readable;
+	version?: string;
 }
 
 export interface Release {
-	semver_major: number;
-	semver_minor: number;
-	semver_patch: number;
+	semver: string;
 	status: SDK.ReleaseStatus;
 	releaseImages: Array<{
 		image: SDK.Image;
@@ -37,34 +37,41 @@ export interface Release {
 	releaseTags: Array<Pick<SDK.ReleaseTag, 'tag_key' | 'value'>>;
 }
 
-export function $normalizeManifest(manifest: SDK.Release): Release {
+export function $normalizeManifest(
+	manifest: SDK.Release,
+	version?: string,
+): Release {
 	const release: Release = {
-		semver_major: manifest.semver_major,
-		semver_minor: manifest.semver_minor,
-		semver_patch: manifest.semver_patch,
+		semver: manifest.semver,
 		status: manifest.status,
 		releaseImages: [],
 		releaseTags: [],
 	};
+
+	if (typeof version === 'string') {
+		const versionOverride = semver.parse(version);
+		if (versionOverride != null) {
+			release.semver = version;
+		} else {
+			throw new Error(
+				`Expected version to be a valid semantic version but found '${version}'`,
+			);
+		}
+	}
 
 	if (release.status !== 'success') {
 		throw new Error(
 			`Expected release to have status 'success' but found '${manifest.status}'`,
 		);
 	}
-	if (typeof release.semver_major !== 'number') {
+	if (typeof release.semver !== 'string') {
 		throw new Error(
-			`Expected release to have semver_major that is a number but found ${typeof manifest.semver_major}`,
+			`Expected release to have semver that is a string but found ${typeof manifest.semver}`,
 		);
 	}
-	if (typeof release.semver_minor !== 'number') {
+	if (semver.valid(release.semver) == null) {
 		throw new Error(
-			`Expected release to have semver_minor that is a number but found ${typeof manifest.semver_minor}`,
-		);
-	}
-	if (typeof release.semver_patch !== 'number') {
-		throw new Error(
-			`Expected release to have semver_patch that is a number but found ${typeof manifest.semver_patch}`,
+			`Expected release to have semver to be a valid semantic version but found '${release.semver}'`,
 		);
 	}
 
@@ -102,7 +109,6 @@ export function $normalizeManifest(manifest: SDK.Release): Release {
 			service: service.service_name,
 		});
 	}
-	// TODO: Validate release tags
 	if (!Array.isArray(manifest.release_tag)) {
 		throw new Error(
 			`Expected array of release tags but found ${typeof manifest.release_tag}`,
@@ -130,7 +136,6 @@ export function $normalizeManifest(manifest: SDK.Release): Release {
 
 export async function apply(options: ApplyOptions): Promise<number> {
 	const { sdk } = options;
-	// FIXME: clone release timestamps when the API already allows it
 	const currentDateIso = new Date(Date.now()).toISOString();
 
 	const bundle = await resourceBundle.read<SDK.Release>(
@@ -142,7 +147,7 @@ export async function apply(options: ApplyOptions): Promise<number> {
 
 	let release: Release;
 	try {
-		release = $normalizeManifest(bundle.manifest);
+		release = $normalizeManifest(bundle.manifest, options.version);
 	} catch (error) {
 		throw new Error(`Manifest is malformed: ${error.message}`);
 	}
@@ -165,20 +170,13 @@ export async function apply(options: ApplyOptions): Promise<number> {
 			source: bundle.manifest.source,
 			build_log: bundle.manifest.build_log,
 			is_invalidated: bundle.manifest.is_invalidated,
-			// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 			start_timestamp: currentDateIso,
 			end_timestamp: currentDateIso,
 			update_timestamp: currentDateIso,
 			phase: bundle.manifest.phase,
-			semver: bundle.manifest.semver,
-			semver_major: release.semver_major,
-			semver_minor: release.semver_minor,
-			semver_patch: release.semver_patch,
-			semver_prerelease: bundle.manifest.semver_prerelease,
-			semver_build: bundle.manifest.semver_build,
+			semver: release.semver,
 			variant: bundle.manifest.variant,
 			known_issue_list: bundle.manifest.known_issue_list,
-			raw_version: bundle.manifest.raw_version,
 			is_final: bundle.manifest.is_final,
 			is_finalized_at__date: bundle.manifest.is_finalized_at__date,
 			note: bundle.manifest.note,
@@ -228,7 +226,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 				content_hash: releaseImage.image.content_hash,
 				is_a_build_of__service: localService.id,
 				status: 'running',
-				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 				start_timestamp: currentDateIso,
 				push_timestamp: currentDateIso,
 			},
@@ -250,7 +247,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 			id: localImage.id,
 			body: {
 				status: releaseImage.image.status,
-				// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 				end_timestamp: currentDateIso,
 			},
 		});
@@ -261,7 +257,6 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		id: localRelease.id,
 		body: {
 			status: release.status,
-			// TODO: set timestamps to manifest values once API allows setting of custom timestamps
 			end_timestamp: currentDateIso,
 			update_timestamp: currentDateIso,
 		},
