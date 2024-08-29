@@ -27,6 +27,21 @@ interface ApplyOptions {
 	version?: string;
 }
 
+type ImageMap = {
+	sourceImage: resourceBundle.docker.ImageDescriptor;
+	newImage: resourceBundle.docker.ImageDescriptor;
+	newImageId: number;
+};
+
+interface GetNewImageLocationOptions {
+	application: SDK.Application;
+	release: Release;
+	targetReleaseId: number;
+	image: resourceBundle.docker.ImageDescriptor;
+	sdk: SDK.BalenaSDK;
+	currentDateIso: string;
+}
+
 export interface Release {
 	semver: string;
 	status: SDK.ReleaseStatus;
@@ -137,8 +152,7 @@ export function $normalizeManifest(
 export async function apply(options: ApplyOptions): Promise<number> {
 	const { sdk } = options;
 	const currentDateIso = new Date(Date.now()).toISOString();
-
-	const bundle = await resourceBundle.read<SDK.Release>(
+	const bundle = await resourceBundle.open<SDK.Release>(
 		options.stream,
 		'io.balena.release',
 	);
@@ -158,7 +172,7 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		$select: ['id'],
 	});
 
-	const localRelease = await sdk.pine.post<SDK.Release>({
+	const targetRelease = await sdk.pine.post<SDK.Release>({
 		resource: 'release',
 		body: {
 			belongs_to__application: application.id,
@@ -191,7 +205,7 @@ export async function apply(options: ApplyOptions): Promise<number> {
 				await sdk.pine.post({
 					resource: 'release_tag',
 					body: {
-						release: localRelease.id,
+						release: targetRelease.id,
 						tag_key: rt.tag_key,
 						value: rt.value,
 					},
@@ -200,53 +214,47 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		);
 	}
 
-	// create associated image entries and upload the images.
-	// entries need to be created as "pending" first so that the api
-	// the api can generate an image name that will use to upload the
-	// artifacts to the registry. then we begin upload, and finally
-	// mark the image entries as "success"-ful.
-	for (const releaseImage of release.releaseImages) {
-		const localService = await sdk.pine.getOrCreate<SDK.Service>({
-			resource: 'service',
-			id: {
-				application: application.id,
-				service_name: releaseImage.service,
-			},
-			body: {
-				application: application.id,
-				service_name: releaseImage.service,
-			},
+	// Lesson: break things in stages, extract all information that you need, work within contexts
+	const { ImageSet } = resourceBundle.docker;
+	const descriptor = bundle.resources.find(
+		(bundledResource) => bundledResource.id === 'release-image-set',
+	);
+	if (descriptor == null) {
+		throw new Error('Invalid release bundle; does not contain expected images');
+	}
+	const resource =
+		bundle.readMultipart<resourceBundle.docker.ImageSetManifest>(descriptor);
+	const imageSet = ImageSet.fromBundle(resource);
+	const imageMapping: ImageMap[] = [];
+	for (const image of imageSet.images) {
+		const { newImage, newImageId } = await getNewImageLocation({
+			application,
+			release,
+			targetReleaseId: targetRelease.id,
+			image,
+			sdk,
+			currentDateIso,
 		});
-
-		// There is a restriction in the API that requires images to be created
-		// with the current date.
-		const localImage = await sdk.pine.post<SDK.Image>({
-			resource: 'image',
-			body: {
-				content_hash: releaseImage.image.content_hash,
-				is_a_build_of__service: localService.id,
-				status: 'running',
-				start_timestamp: currentDateIso,
-				push_timestamp: currentDateIso,
-			},
+		imageMapping.push({
+			sourceImage: image,
+			newImage,
+			newImageId,
 		});
+	}
+	for (const imageMap of imageMapping) {
+		imageSet.tag(imageMap.sourceImage, imageMap.newImage);
+	}
 
-		await sdk.pine.post({
-			resource: 'image__is_part_of__release',
-			body: {
-				is_part_of__release: localRelease.id,
-				image: localImage.id,
-			},
-		});
+	const subject = (await sdk.auth.getUserInfo()).username;
+	const token = await sdk.auth.getToken();
+	await imageSet.push({ scheme: 'Bearer', subject, token });
 
-		// TODO: upload images from the release bundle at this part
-
-		// mark image as successful
+	for (const imageMap of imageMapping) {
 		await sdk.pine.patch({
 			resource: 'image',
-			id: localImage.id,
+			id: imageMap.newImageId,
 			body: {
-				status: releaseImage.image.status,
+				status: 'success',
 				end_timestamp: currentDateIso,
 			},
 		});
@@ -254,13 +262,67 @@ export async function apply(options: ApplyOptions): Promise<number> {
 
 	await sdk.pine.patch({
 		resource: 'release',
-		id: localRelease.id,
+		id: targetRelease.id,
 		body: {
-			status: release.status,
+			status: 'success',
 			end_timestamp: currentDateIso,
 			update_timestamp: currentDateIso,
 		},
 	});
 
-	return localRelease.id;
+	return targetRelease.id;
+}
+
+async function getNewImageLocation(
+	options: GetNewImageLocationOptions,
+): Promise<{
+	newImage: resourceBundle.docker.ImageDescriptor;
+	newImageId: number;
+}> {
+	const { application, release, targetReleaseId, image, sdk, currentDateIso } =
+		options;
+	const releaseImage = release.releaseImages.find(
+		(imageDetail) => imageDetail.image.content_hash === image.reference,
+	);
+	if (releaseImage == null) {
+		throw new Error(
+			`Unexpected image ${image.registry}/${image.repository} found in bundle.`,
+		);
+	}
+	const localService = await sdk.pine.getOrCreate<SDK.Service>({
+		resource: 'service',
+		id: {
+			application: application.id,
+			service_name: releaseImage.service,
+		},
+		body: {
+			application: application.id,
+			service_name: releaseImage.service,
+		},
+	});
+	const createdImage = await sdk.pine.post<SDK.Image>({
+		resource: 'image',
+		body: {
+			content_hash: image.reference,
+			is_a_build_of__service: localService.id,
+			status: 'running',
+			start_timestamp: currentDateIso,
+			push_timestamp: currentDateIso,
+		},
+	});
+	await sdk.pine.post({
+		resource: 'image__is_part_of__release',
+		body: {
+			is_part_of__release: targetReleaseId,
+			image: createdImage.id,
+		},
+	});
+
+	const newImage = {
+		registry: createdImage.is_stored_at__image_location.split('/')[0],
+		repository: `v2/${createdImage.is_stored_at__image_location.split('/v2/')[1]}`,
+		reference: image.reference,
+	};
+
+	return { newImage, newImageId: createdImage.id };
 }

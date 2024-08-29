@@ -84,37 +84,23 @@ export async function create(options: CreateOptions): Promise<Readable> {
 	});
 	const release = $validateRelease(remoteRelease);
 
-	const imageDescriptors = getImageDescriptors(release);
-	const authinfo =
-		await resourceBundle.docker.discoverAuthenticate(imageDescriptors);
+	const imageNames = getImageNames(release);
 
-	let registryToken: string | undefined;
-	if (authinfo != null) {
-		const [authentication, scopes] = authinfo;
-		const subject = (await sdk.auth.getUserInfo()).username;
-		const token = await sdk.auth.getToken();
-		registryToken = await resourceBundle.docker.authenticate(
-			authentication,
-			scopes,
-			{
-				type: 'Bearer',
-				subject,
-				token,
-			},
-		);
-	}
-	const { blobs } = await resourceBundle.docker.fetchImages(
-		imageDescriptors,
-		registryToken,
-	);
+	const { ImageSet } = resourceBundle.docker;
 
-	return await $create(release, blobs);
+	const subject = (await sdk.auth.getUserInfo()).username;
+	const token = await sdk.auth.getToken();
+	const imageSet = await ImageSet.fromImages(imageNames, {
+		scheme: 'Bearer',
+		subject,
+		token,
+	});
+
+	return await $create(release, imageSet);
 }
 
-function getImageDescriptors(
-	release: SDK.Release,
-): resourceBundle.docker.ImageDescriptor[] {
-	return release.release_image!.map((releaseImage) => {
+function getImageNames(release: SDK.Release): string[] {
+	return release.release_image!.map((releaseImage: any) => {
 		if (!Array.isArray(releaseImage.image)) {
 			throw new Error(
 				'Release bundles can only be created from releases with successfully built images.',
@@ -122,18 +108,23 @@ function getImageDescriptors(
 		}
 		const [image] = releaseImage.image;
 		const imageName = `${image.is_stored_at__image_location}@${image.content_hash}`;
-		return resourceBundle.docker.parseImageName(imageName);
+		return imageName;
 	});
 }
 
-async function $create(release: SDK.Release, blobs: resourceBundle.Resource[]) {
-	const bundle = new resourceBundle.WritableBundle<SDK.Release>({
+async function $create(
+	release: SDK.Release,
+	imageSet: resourceBundle.docker.ImageSet,
+) {
+	const bundle = resourceBundle.create<SDK.Release>({
 		type: 'io.balena.release',
 		manifest: release,
+		resources: [
+			{
+				id: 'release-image-set',
+				contents: imageSet.contents,
+			},
+		],
 	});
-	for (const blob of blobs) {
-		bundle.addResource(blob);
-	}
-
-	return bundle.finalize();
+	return bundle;
 }
