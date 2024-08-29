@@ -1,4 +1,18 @@
 - commits:
+    - subject: Bump resource-bundle to v0.8.3.
+      hash: e817cbdf2c60b92f89f689e3e16e2ce0f88b008e
+      body: |
+        Enables image uploads to the registry.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.5.1
+  title: ""
+  date: 2024-08-29T09:06:28.351Z
+- commits:
     - subject: Update tests.
       hash: 74d8be8776f8278e7f934cfd19076cf0679926f0
       body: ""
