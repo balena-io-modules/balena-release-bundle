@@ -1,4 +1,19 @@
 - commits:
+    - subject: Reinstate successful commit constraint.
+      hash: fe42a062aad64ce5e034e2131743a67259a34eb6
+      body: |
+        This prevents importing of commits that have already been successfully
+        imported into a fleet.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+        signed-off-by: Carlo Miguel F. Cruz <carloc@balena.io>
+      author: Carlo Miguel F. Cruz
+  version: 0.5.2
+  title: ""
+  date: 2024-08-30T04:31:01.747Z
+- commits:
     - subject: Bump resource-bundle to v0.8.3.
       hash: e817cbdf2c60b92f89f689e3e16e2ce0f88b008e
       body: |
