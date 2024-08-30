@@ -172,6 +172,25 @@ export async function apply(options: ApplyOptions): Promise<number> {
 		$select: ['id'],
 	});
 
+	const [existingRelease] = await sdk.pine.get<SDK.Release>({
+		resource: 'release',
+		options: {
+			$select: ['id', 'commit', 'version'],
+			$filter: {
+				belongs_to__application: application.id,
+				commit: bundle.manifest.commit,
+				status: 'success',
+			},
+			$top: 1,
+		},
+	});
+
+	if (existingRelease != null) {
+		throw new Error(
+			`A successful release with commit ${existingRelease.commit} (${existingRelease.version.version}) already exists; nothing to do.`,
+		);
+	}
+
 	const targetRelease = await sdk.pine.post<SDK.Release>({
 		resource: 'release',
 		body: {
