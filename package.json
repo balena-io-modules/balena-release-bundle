@@ -1,6 +1,6 @@
 {
   "name": "@balena/release-bundle",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Balena Release Bundle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -54,6 +54,6 @@
     "typescript": "^5.2.2"
   },
   "versionist": {
-    "publishedAt": "2024-08-30T04:31:01.804Z"
+    "publishedAt": "2026-02-19T01:59:53.082Z"
   }
 }

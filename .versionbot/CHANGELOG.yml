@@ -1,4 +1,17 @@
 - commits:
+    - subject: "Add id-token: write permission for NPM OIDC publishing"
+      hash: 06a9c8b779705b4aa484ee79284b20916398d2a1
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.5.3
+  title: ""
+  date: 2026-02-19T01:59:53.045Z
+- commits:
     - subject: Reinstate successful commit constraint.
       hash: fe42a062aad64ce5e034e2131743a67259a34eb6
       body: |
